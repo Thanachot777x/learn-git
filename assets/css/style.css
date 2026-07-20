@@ -1,0 +1,192 @@
+/* =============================
+   IT Support Helpdesk - style.css
+   ============================= */
+
+/* Layout */
+body {
+    background-color: #f0f2f5;
+    font-family: 'Sarabun', 'Segoe UI', sans-serif;
+}
+
+.container-fluid.mt-3 {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* Navbar */
+.navbar {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.navbar-brand {
+    font-size: 1.1rem;
+    letter-spacing: 0.3px;
+}
+
+/* Cards */
+.card {
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+/* Stat Cards */
+.card.bg-primary,
+.card.bg-danger,
+.card.bg-warning,
+.card.bg-success,
+.card.bg-info,
+.card.bg-secondary {
+    border-radius: 10px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card.bg-primary:hover,
+.card.bg-danger:hover,
+.card.bg-warning:hover,
+.card.bg-success:hover,
+.card.bg-info:hover,
+.card.bg-secondary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15) !important;
+}
+
+/* Tables */
+.table th {
+    font-weight: 600;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.table td {
+    font-size: 0.875rem;
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.04);
+}
+
+/* Badges */
+.badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 7px;
+    font-size: 0.875rem;
+}
+
+.btn-sm {
+    border-radius: 5px;
+}
+
+/* Forms */
+.form-control,
+.form-select {
+    border-radius: 7px;
+    font-size: 0.9rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* Login Page */
+.login-card {
+    max-width: 420px;
+    margin: 80px auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.login-header {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    color: white;
+    border-radius: 12px 12px 0 0;
+    padding: 30px;
+    text-align: center;
+}
+
+/* Footer */
+.footer {
+    font-size: 0.82rem;
+}
+
+/* Timeline (ประวัติ ticket) */
+.timeline {
+    position: relative;
+    padding-left: 10px;
+}
+
+.timeline > .d-flex:not(:last-child) {
+    border-left: 2px solid #dee2e6;
+    margin-left: 4px;
+    padding-left: 14px;
+    padding-bottom: 4px;
+}
+
+.timeline > .d-flex:last-child {
+    margin-left: 4px;
+    padding-left: 14px;
+}
+
+/* Priority colors hint */
+tr:has(.badge.bg-danger:first-of-type) {
+    background-color: rgba(220, 53, 69, 0.03);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container-fluid.mt-3 {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    h4.fw-bold {
+        font-size: 1.1rem;
+    }
+
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+}
+
+/* Code tags */
+code {
+    background-color: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #d63384;
+    font-size: 0.82rem;
+}
+
+/* Alert */
+.alert {
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* Modal */
+.modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-footer {
+    border-top: 1px solid #f0f0f0;
+}
+ 
