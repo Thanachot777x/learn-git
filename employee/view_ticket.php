@@ -98,6 +98,12 @@ $current_step = $step_order[$s] ?? 1;
 .desc-box { background:#f9fafb; border:1px solid #f1f2f4; border-radius:9px; padding:14px 16px; margin-top: 4px; color:#374151; line-height:1.6; }
 .desc-label { font-size:12px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:8px; }
 
+/* device info grid */
+.device-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-top: 4px; }
+.device-item { background:#f9fafb; border:1px solid #f1f2f4; border-radius:9px; padding:10px 14px; }
+.device-item .dk { font-size:11px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px; }
+.device-item .dv { font-size:13.5px; color:#111827; font-weight:500; }
+
 /* timeline */
 .tl { position:relative; padding-left: 6px; }
 .tl-item { position:relative; padding-left: 34px; padding-bottom: 26px; }
@@ -201,19 +207,53 @@ $current_step = $step_order[$s] ?? 1;
                         <div class="info-val" style="font-weight:400; color:#4b5563;"><?= date('d/m/Y H:i', strtotime($ticket['updated_at'])) ?></div>
                     </div>
 
-                   <div class="desc-label" style="margin-top:18px;">รายละเอียดปัญหา</div>
+                    <div class="desc-label" style="margin-top:18px;">รายละเอียดปัญหา</div>
                     <div class="desc-box"><?= nl2br(htmlspecialchars($ticket['description'])) ?></div>
+
+                    <?php if (!empty($ticket['device_type']) || !empty($ticket['device_name']) || !empty($ticket['serial_no']) || !empty($ticket['building'])): ?>
+                    <div class="desc-label" style="margin-top:18px;">ข้อมูลอุปกรณ์ / สถานที่</div>
+                    <div class="device-grid">
+                        <?php if (!empty($ticket['device_type'])): ?>
+                        <div class="device-item">
+                            <div class="dk">ประเภทอุปกรณ์</div>
+                            <div class="dv"><?= htmlspecialchars($ticket['device_type']) ?></div>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (!empty($ticket['device_name'])): ?>
+                        <div class="device-item">
+                            <div class="dk">ชื่ออุปกรณ์</div>
+                            <div class="dv"><?= htmlspecialchars($ticket['device_name']) ?></div>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (!empty($ticket['serial_no'])): ?>
+                        <div class="device-item">
+                            <div class="dk">Serial / Asset No.</div>
+                            <div class="dv"><?= htmlspecialchars($ticket['serial_no']) ?></div>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (!empty($ticket['building'])): ?>
+                        <div class="device-item">
+                            <div class="dk">สถานที่</div>
+                            <div class="dv">
+                                <?= htmlspecialchars($ticket['building']) ?>
+                                <?php if (!empty($ticket['floor'])): ?> ชั้น <?= htmlspecialchars($ticket['floor']) ?><?php endif; ?>
+                                <?php if (!empty($ticket['room'])): ?> ห้อง <?= htmlspecialchars($ticket['room']) ?><?php endif; ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
 
                     <?php if (!empty($ticket['image_path'])): ?>
                     <div class="desc-label" style="margin-top:18px;">รูปภาพประกอบ</div>
-                    <a href="<?= BASE_URL ?>/<?= htmlspecialchars($ticket['image_path']) ?>" target="_blank">
+                    <a href="<?= BASE_URL ?>/<?= htmlspecialchars($ticket['image_path']) ?>" target="_blank" style="display:inline-block; margin-top:6px;">
                         <img src="<?= BASE_URL ?>/<?= htmlspecialchars($ticket['image_path']) ?>"
-                             style="max-width:100%; border-radius:8px; border:1px solid #e5e7eb; margin-top:6px;">
+                             style="width:160px; height:160px; object-fit:cover; border-radius:9px; border:1px solid #e5e7eb; display:block;">
                     </a>
                     <?php endif; ?>
+
                 </div>
             </div>
-        </div>
         </div>
 
         <!-- ประวัติ -->
