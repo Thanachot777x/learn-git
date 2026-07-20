@@ -201,10 +201,19 @@ $current_step = $step_order[$s] ?? 1;
                         <div class="info-val" style="font-weight:400; color:#4b5563;"><?= date('d/m/Y H:i', strtotime($ticket['updated_at'])) ?></div>
                     </div>
 
-                    <div class="desc-label" style="margin-top:18px;">รายละเอียดปัญหา</div>
+                   <div class="desc-label" style="margin-top:18px;">รายละเอียดปัญหา</div>
                     <div class="desc-box"><?= nl2br(htmlspecialchars($ticket['description'])) ?></div>
+
+                    <?php if (!empty($ticket['image_path'])): ?>
+                    <div class="desc-label" style="margin-top:18px;">รูปภาพประกอบ</div>
+                    <a href="<?= BASE_URL ?>/<?= htmlspecialchars($ticket['image_path']) ?>" target="_blank">
+                        <img src="<?= BASE_URL ?>/<?= htmlspecialchars($ticket['image_path']) ?>"
+                             style="max-width:100%; border-radius:8px; border:1px solid #e5e7eb; margin-top:6px;">
+                    </a>
+                    <?php endif; ?>
                 </div>
             </div>
+        </div>
         </div>
 
         <!-- ประวัติ -->
