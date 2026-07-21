@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'accep
     exit();
 }
 
-// ---------- โหลดหน้าอัปเดตตามปกติ (ต้องมี ?id=) ----------
+// ---------- โหลดหน้าอัปเดตตามปกติ (ต้องมี ?id=) -----------
 $ticket_id = (int) ($_GET['id'] ?? 0);
 if (!$ticket_id) {
     header("Location: " . BASE_URL . "/technician/dashboard.php");
