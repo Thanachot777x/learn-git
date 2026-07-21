@@ -206,7 +206,7 @@ $current_dir  = basename(dirname($_SERVER['PHP_SELF']));
             </a>
             <a href="<?= BASE_URL ?>/admin/manage_buildings.php"
                class="sidebar-item <?= $current_page==='manage_buildings.php' ? 'active':'' ?>">
-                <i class="bi bi-building"></i> จัดการข้อมูลอาคาร / ตึก
+                <i class="bi bi-building"></i> จัดการข้อมูลอาคาร/ตึก
             </a>
 
         <?php elseif ($_SESSION['role'] === 'manager'): ?>
