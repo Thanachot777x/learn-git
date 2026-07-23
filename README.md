@@ -7,7 +7,6 @@
 - 🔔 **In-App Notification**: ระบบแจ้งเตือนในระบบแบบเรียลไทม์ผ่านไอคอนกระดิ่งพร้อม Badge แสดงจำนวนรายการที่ยังไม่อ่าน
 - 📊 **Interactive Dashboard**: กราฟสถิติมุมมองเชิงลึกด้วย **Chart.js** (วิเคราะห์สัดส่วนประเภทปัญหา Hardware, Software, Network)
 - 📄 **Ticket Timeline & Detail View**: หน้าติดตามไทม์ไลน์การทำงานของช่าง IT พร้อมรูปภาพแนบก่อน-หลังซ่อม
-- 👁️ **Password Visibility Toggle**: ปุ่มเปิด/ปิดการแสดงรหัสผ่านในทุกฟอร์ม
 - 📱 **Modern SaaS UI & Responsive**: ดีไซน์พรีเมียมด้วย Google Fonts (Prompt & Inter) รองรับหน้าจอทุกขนาด
 ---
 ## 📦 การติดตั้ง (Quick Setup)
