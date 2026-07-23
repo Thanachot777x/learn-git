@@ -233,7 +233,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="form-label">รหัสผ่าน (Password)</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                    <input type="password" name="password" class="form-control" placeholder="กรอกรหัสผ่าน" required>
+                    <input type="password" name="password" id="loginPwd" class="form-control" placeholder="กรอกรหัสผ่าน" required>
+                    <button class="input-group-text" type="button" onclick="togglePwd('loginPwd', this)" style="cursor:pointer; border-left:none;">
+                        <i class="bi bi-eye-slash"></i>
+                    </button>
                 </div>
             </div>
             <button type="submit" class="btn btn-login w-100">
@@ -244,5 +247,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function togglePwd(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye-slash';
+    }
+}
+</script>
 </body>
 </html>

@@ -140,6 +140,41 @@ $current_dir  = basename(dirname($_SERVER['PHP_SELF']));
         .topbar-btn.logout { color: #ef4444; }
         .topbar-btn.logout:hover { background: #fef2f2; color: #dc2626; }
         .topbar-divider { width: 1px; height: 22px; background: #cbd5e1; }
+
+        /* Notification Dropdown */
+        .notif-dropdown-wrap { position: relative; }
+        .notif-badge {
+            position: absolute; top: 0px; right: 4px;
+            background: #ef4444; color: #fff;
+            font-size: 10px; font-weight: 700;
+            padding: 1px 5px; border-radius: 10px;
+            box-shadow: 0 0 0 2px #fff;
+            line-height: 1.2;
+        }
+        .notif-menu {
+            width: 320px; max-height: 420px; overflow-y: auto;
+            border-radius: 12px; border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);
+            padding: 0;
+        }
+        .notif-header {
+            padding: 12px 16px; border-bottom: 1px solid #f1f5f9;
+            display: flex; align-items: center; justify-content: space-between;
+            font-weight: 600; font-size: 13px; color: #0f172a;
+            background: #fff;
+            position: sticky; top: 0; z-index: 10;
+        }
+        .notif-item {
+            padding: 12px 16px; border-bottom: 1px solid #f8fafc;
+            display: block; text-decoration: none; color: #334155;
+            transition: background 0.15s ease;
+        }
+        .notif-item:hover { background: #f8fafc; }
+        .notif-item.unread { background: #eff6ff; }
+        .notif-item.unread:hover { background: #dbeafe; }
+        .notif-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; color: #0f172a; }
+        .notif-msg { font-size: 12px; color: #64748b; margin-bottom: 4px; line-height: 1.3; }
+        .notif-time { font-size: 10.5px; color: #94a3b8; }
         .btn-hamburger {
             display: none;
             background: none; border: none;
@@ -190,6 +225,10 @@ $current_dir  = basename(dirname($_SERVER['PHP_SELF']));
                class="sidebar-item <?= $current_page==='submit_ticket.php' ? 'active':'' ?>">
                 <i class="bi bi-plus-circle"></i> แจ้งปัญหา
             </a>
+            <a href="<?= BASE_URL ?>/employee/profile.php"
+               class="sidebar-item <?= $current_page==='profile.php' ? 'active':'' ?>">
+                <i class="bi bi-person"></i> ข้อมูลส่วนตัว
+            </a>
 
         <?php elseif ($_SESSION['role'] === 'technician'): ?>
             <div class="sidebar-section">เมนู</div>
@@ -200,6 +239,10 @@ $current_dir  = basename(dirname($_SERVER['PHP_SELF']));
             <a href="<?= BASE_URL ?>/technician/dashboard.php?filter=assigned"
                class="sidebar-item <?= isset($_GET['filter']) && $_GET['filter']==='assigned' ? 'active':'' ?>">
                 <i class="bi bi-tools"></i> Ticket ของฉัน
+            </a>
+            <a href="<?= BASE_URL ?>/employee/profile.php"
+               class="sidebar-item <?= $current_page==='profile.php' ? 'active':'' ?>">
+                <i class="bi bi-person"></i> ข้อมูลส่วนตัว
             </a>
 
         <?php elseif ($_SESSION['role'] === 'admin'): ?>
@@ -230,6 +273,10 @@ $current_dir  = basename(dirname($_SERVER['PHP_SELF']));
                class="sidebar-item <?= $current_page==='manage_buildings.php' ? 'active':'' ?>">
                 <i class="bi bi-building"></i> จัดการข้อมูลอาคาร / ตึก
             </a>
+            <a href="<?= BASE_URL ?>/employee/profile.php"
+               class="sidebar-item <?= $current_page==='profile.php' ? 'active':'' ?>">
+                <i class="bi bi-person"></i> ข้อมูลส่วนตัว
+            </a>
 
         <?php elseif ($_SESSION['role'] === 'manager'): ?>
             <div class="sidebar-section">ภาพรวม</div>
@@ -241,6 +288,10 @@ $current_dir  = basename(dirname($_SERVER['PHP_SELF']));
             <a href="<?= BASE_URL ?>/manager/assign_tickets.php"
                class="sidebar-item <?= $current_page==='assign_tickets.php' ? 'active':'' ?>">
                 <i class="bi bi-person-check"></i> มอบหมายงาน
+            </a>
+            <a href="<?= BASE_URL ?>/employee/profile.php"
+               class="sidebar-item <?= $current_page==='profile.php' ? 'active':'' ?>">
+                <i class="bi bi-person"></i> ข้อมูลส่วนตัว
             </a>
         <?php endif; ?>
 
@@ -270,7 +321,45 @@ $current_dir  = basename(dirname($_SERVER['PHP_SELF']));
     <span class="topbar-greeting">
         ยินดีต้อนรับ, <strong><?= htmlspecialchars($_SESSION['fullname'] ?? '') ?></strong>
     </span>
-    <a href="#" class="topbar-btn"><i class="bi bi-bell"></i> แจ้งเตือน</a>
+    <?php
+    $unread_notif_count = 0;
+    $latest_notifs = [];
+    if (isset($_SESSION['user_id']) && isset($pdo)) {
+        $unread_notif_count = getUnreadNotificationCount($pdo, $_SESSION['user_id']);
+        $latest_notifs = getLatestNotifications($pdo, $_SESSION['user_id'], 5);
+    }
+    ?>
+    <div class="notif-dropdown-wrap dropdown">
+        <button class="topbar-btn border-0 bg-transparent dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-bell"></i> แจ้งเตือน
+            <?php if ($unread_notif_count > 0): ?>
+                <span class="notif-badge"><?= $unread_notif_count > 99 ? '99+' : $unread_notif_count ?></span>
+            <?php endif; ?>
+        </button>
+        <div class="dropdown-menu dropdown-menu-end notif-menu">
+            <div class="notif-header">
+                <span><i class="bi bi-bell me-1"></i> การแจ้งเตือน</span>
+                <?php if ($unread_notif_count > 0): ?>
+                    <a href="<?= BASE_URL ?>/includes/mark_read.php?all=1" class="text-primary text-decoration-none small">อ่านทั้งหมด</a>
+                <?php endif; ?>
+            </div>
+            <?php if (empty($latest_notifs)): ?>
+                <div class="text-center text-muted py-4 small">
+                    <i class="bi bi-bell-slash fs-4 d-block mb-1 opacity-50"></i>
+                    ไม่มีการแจ้งเตือน
+                </div>
+            <?php else: ?>
+                <?php foreach ($latest_notifs as $n): ?>
+                    <a href="<?= BASE_URL ?>/includes/mark_read.php?id=<?= $n['id'] ?>&redirect=<?= urlencode($n['link'] ?: (BASE_URL . '/' . $_SESSION['role'] . '/dashboard.php')) ?>"
+                       class="notif-item <?= $n['is_read'] ? '' : 'unread' ?>">
+                        <div class="notif-title"><?= htmlspecialchars($n['title']) ?></div>
+                        <div class="notif-msg"><?= htmlspecialchars($n['message']) ?></div>
+                        <div class="notif-time"><?= date('d/m/Y H:i', strtotime($n['created_at'])) ?></div>
+                    </a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
     <div class="topbar-divider"></div>
     <a href="<?= BASE_URL ?>/auth/logout.php" class="topbar-btn logout">
         <i class="bi bi-box-arrow-right"></i> ออกจากระบบ

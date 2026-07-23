@@ -121,3 +121,19 @@ INSERT INTO `ticket_updates` (`id`, `ticket_id`, `updated_by`, `old_status`, `ne
 (1, 1, 6, 'open', 'in_progress', 'รับงานเข้าดำเนินการ', NULL, '2026-07-02 14:12:02'),
 (2, 1, 6, 'in_progress', 'in_progress', 'กำลังซ่อม', NULL, '2026-07-02 14:12:18'),
 (3, 1, 6, 'in_progress', 'resolved', 'เรียบร้อยละน้อง', 'update_6a4671ecc625b1.57256809.webp', '2026-07-02 14:13:00');
+
+CREATE TABLE IF NOT EXISTS `notifications` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `ticket_id` int(11) DEFAULT NULL,
+  `title` varchar(200) NOT NULL,
+  `message` text NOT NULL,
+  `link` varchar(255) DEFAULT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `is_read` (`is_read`),
+  CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+

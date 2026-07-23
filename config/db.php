@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../includes/csrf.php';
+require_once __DIR__ . '/../includes/notifications.php';
 
 // คำนวณหา BASE_URL อัตโนมัติ
 if (!defined('BASE_URL')) {
@@ -49,6 +50,24 @@ if ($is_local) {
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // ตรวจสอบและสร้างตาราง notifications หากยังไม่มี
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `notifications` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `user_id` int(11) NOT NULL,
+          `ticket_id` int(11) DEFAULT NULL,
+          `title` varchar(200) NOT NULL,
+          `message` text NOT NULL,
+          `link` varchar(255) DEFAULT NULL,
+          `is_read` tinyint(1) NOT NULL DEFAULT 0,
+          `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+          PRIMARY KEY (`id`),
+          KEY `user_id` (`user_id`),
+          KEY `is_read` (`is_read`),
+          CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    ");
 } catch (PDOException $e) {
     if ($is_local) {
         // หากเป็น Localhost แล้วยังไม่มีฐานข้อมูล ให้ระบบสร้าง DB และนำเข้า schema ให้อัตโนมัติทันที
