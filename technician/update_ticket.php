@@ -25,6 +25,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'accep
             ");
             $stmt2->execute([$accept_id, $_SESSION['user_id']]);
 
+            // ส่งแจ้งเตือนพนักงานผู้แจ้ง
+            $t_stmt = $pdo->prepare("SELECT ticket_no, user_id FROM tickets WHERE id = ?");
+            $t_stmt->execute([$accept_id]);
+            $t_info = $t_stmt->fetch(PDO::FETCH_ASSOC);
+            if ($t_info) {
+                // แจ้งเตือนพนักงาน
+                addNotification($pdo, $t_info['user_id'], "ช่างรับงานแล้ว ({$t_info['ticket_no']})", "ช่าง IT ได้กดรับ Ticket ของคุณและกำลังเริ่มดำเนินการ", BASE_URL . "/employee/view_ticket.php?id={$accept_id}", $accept_id);
+                // แจ้งเตือน Manager และ Admin
+                addNotificationToRole($pdo, 'manager', "ช่างรับงานแล้ว ({$t_info['ticket_no']})", "ช่าง {$_SESSION['fullname']} ได้กดรับ Ticket แล้ว", BASE_URL . "/manager/assign_tickets.php", $accept_id);
+                addNotificationToRole($pdo, 'admin', "ช่างรับงานแล้ว ({$t_info['ticket_no']})", "ช่าง {$_SESSION['fullname']} ได้กดรับ Ticket แล้ว", BASE_URL . "/admin/manage_tickets.php", $accept_id);
+            }
+
             header("Location: " . BASE_URL . "/technician/update_ticket.php?id=$accept_id&accepted=1");
             exit();
         } else {
@@ -129,6 +141,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$new_status, $ticket_id]);
 
             $pdo->commit();
+
+            // แจ้งเตือนพนักงานผู้แจ้ง
+            $s_map = ['open'=>'รอดำเนินการ','in_progress'=>'กำลังแก้ไข','resolved'=>'แก้ไขแล้ว','closed'=>'ปิดแล้ว'];
+            $st_label = $s_map[$new_status] ?? $new_status;
+            $short_note = mb_substr($note, 0, 50, 'UTF-8') . (mb_strlen($note, 'UTF-8') > 50 ? '...' : '');
+            addNotification($pdo, $ticket['user_id'], "อัปเดต Ticket ({$ticket['ticket_no']})", "สถานะ: {$st_label} | รายละเอียด: {$short_note}", BASE_URL . "/employee/view_ticket.php?id={$ticket_id}", $ticket_id);
+
+            // แจ้งเตือน Manager และ Admin
+            addNotificationToRole($pdo, 'manager', "ช่างอัปเดต Ticket ({$ticket['ticket_no']})", "สถานะเปลี่ยนเป็น: {$st_label}", BASE_URL . "/manager/assign_tickets.php", $ticket_id);
+            addNotificationToRole($pdo, 'admin', "ช่างอัปเดต Ticket ({$ticket['ticket_no']})", "สถานะเปลี่ยนเป็น: {$st_label}", BASE_URL . "/admin/manage_tickets.php", $ticket_id);
+
             header("Location: " . BASE_URL . "/technician/update_ticket.php?id=$ticket_id&success=1");
             exit();
 

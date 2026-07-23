@@ -59,7 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
 // ดึงรายชื่อแผนกจาก DB สำหรับ dropdown (กันชื่อแผนกพิมพ์เพี้ยนไม่ตรงกับตาราง departments)
 $departments = $pdo->query("SELECT name FROM departments ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
 
-$role_text = ['employee'=>'พนักงาน','technician'=>'ช่าง IT','admin'=>'Admin'];
+$role_text = [
+    'employee'   => 'พนักงาน',
+    'technician' => 'ช่าง IT',
+    'manager'    => 'ผู้จัดการ',
+    'admin'      => 'ผู้ดูแลระบบ'
+];
 ?>
 <?php require_once __DIR__ . '/../includes/header.php'; ?>
 
@@ -101,7 +106,7 @@ $role_text = ['employee'=>'พนักงาน','technician'=>'ช่าง IT
                         <div class="fw-bold fs-5"><?= htmlspecialchars($user['fullname']) ?></div>
                         <div class="text-muted small">
                             <code><?= htmlspecialchars($user['username']) ?></code>
-                            <span class="badge bg-secondary ms-1"><?= $role_text[$user['role']] ?></span>
+                            <span class="badge bg-secondary ms-1"><?= htmlspecialchars($role_text[$user['role']] ?? $user['role']) ?></span>
                         </div>
                     </div>
                 </div>
@@ -146,18 +151,33 @@ $role_text = ['employee'=>'พนักงาน','technician'=>'ช่าง IT
                     <?= csrfInput() ?>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">รหัสผ่านเดิม <span class="text-danger">*</span></label>
-                        <input type="password" name="old_password" class="form-control"
-                               placeholder="กรอกรหัสผ่านเดิม" required>
+                        <div class="input-group">
+                            <input type="password" name="old_password" id="oldPwd" class="form-control"
+                                   placeholder="กรอกรหัสผ่านเดิม" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('oldPwd', this)">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">รหัสผ่านใหม่ <span class="text-danger">*</span></label>
-                        <input type="password" name="new_password" class="form-control"
-                               placeholder="กรอกรหัสผ่านใหม่ (อย่างน้อย 4 ตัวอักษร)" required>
+                        <div class="input-group">
+                            <input type="password" name="new_password" id="newPwd" class="form-control"
+                                   placeholder="กรอกรหัสผ่านใหม่ (อย่างน้อย 4 ตัวอักษร)" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('newPwd', this)">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="mb-4">
                         <label class="form-label fw-semibold">ยืนยันรหัสผ่านใหม่ <span class="text-danger">*</span></label>
-                        <input type="password" name="confirm_password" class="form-control"
-                               placeholder="กรอกรหัสผ่านใหม่อีกครั้ง" required>
+                        <div class="input-group">
+                            <input type="password" name="confirm_password" id="confirmPwd" class="form-control"
+                                   placeholder="กรอกรหัสผ่านใหม่อีกครั้ง" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('confirmPwd', this)">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                        </div>
                     </div>
                     <button type="submit" name="change_password" class="btn btn-primary w-100">
                         <i class="bi bi-key me-1"></i>เปลี่ยนรหัสผ่าน
@@ -167,5 +187,19 @@ $role_text = ['employee'=>'พนักงาน','technician'=>'ช่าง IT
         </div>
     </div>
 </div>
+
+<script>
+function togglePwd(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye-slash';
+    }
+}
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
