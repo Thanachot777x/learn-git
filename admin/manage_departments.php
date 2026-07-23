@@ -6,6 +6,10 @@ requireRole('admin');
 $success = '';
 $error   = '';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrfToken();
+}
+
 // เพิ่มแผนก
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_dept'])) {
     $name = trim($_POST['name'] ?? '');
@@ -125,6 +129,7 @@ tr:hover td { background: #f9fafb; }
                 </td>
                 <td>
                     <form method="POST" style="display:inline;" onsubmit="return confirm('ยืนยันลบแผนก \'<?= htmlspecialchars($d['name'], ENT_QUOTES) ?>\'?')">
+                        <?= csrfInput() ?>
                         <input type="hidden" name="id" value="<?= $d['id'] ?>">
                         <button type="submit" name="delete_dept" class="btn-del" title="ลบ">
                             <i class="bi bi-trash-fill"></i>
@@ -151,6 +156,7 @@ tr:hover td { background: #f9fafb; }
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST">
+                <?= csrfInput() ?>
                 <div class="modal-body">
                     <label class="form-label" style="font-size:13px;">ชื่อแผนก</label>
                     <input type="text" name="name" class="form-control" required placeholder="กรอกชื่อแผนก">
@@ -175,6 +181,7 @@ tr:hover td { background: #f9fafb; }
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST">
+                <?= csrfInput() ?>
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editDeptId">
                     <label class="form-label" style="font-size:13px;">ชื่อแผนก</label>

@@ -1,307 +1,322 @@
 <?php
 require_once __DIR__ . '/../includes/auth_check.php';
 require_once __DIR__ . '/../config/db.php';
-requireRole('employee');
+requireLogin();
 
-$ticket_id = (int) ($_GET['id'] ?? 0);
+$ticket_id = (int)($_GET['id'] ?? 0);
+
 if (!$ticket_id) {
-    header("Location: " . BASE_URL . "/employee/dashboard.php");
+    header("Location: " . BASE_URL . "/" . $_SESSION['role'] . "/dashboard.php");
     exit();
 }
 
+// ดึงรายละเอียด Ticket
 $stmt = $pdo->prepare("
-    SELECT t.*, u.fullname as technician, u.email as technician_email
+    SELECT t.*, 
+           reporter.fullname as reporter_name, reporter.department as reporter_dept, reporter.email as reporter_email,
+           tech.fullname as tech_name, tech.department as tech_dept, tech.email as tech_email
     FROM tickets t
-    LEFT JOIN users u ON t.assigned_to = u.id
-    WHERE t.id = ? AND t.user_id = ?
+    JOIN users reporter ON t.user_id = reporter.id
+    LEFT JOIN users tech ON t.assigned_to = tech.id
+    WHERE t.id = ?
 ");
-$stmt->execute([$ticket_id, $_SESSION['user_id']]);
+$stmt->execute([$ticket_id]);
 $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$ticket) {
-    header("Location: " . BASE_URL . "/employee/dashboard.php");
-    exit();
+    die("ไม่พบข้อมูล Ticket หมายเลขดังกล่าว");
 }
 
-$history = $pdo->prepare("
-    SELECT tu.*, u.fullname as updater
+// เช็คสิทธิ์: พนักงานทั่วไปดูได้เฉพาะ Ticket ของตัวเอง
+if ($_SESSION['role'] === 'employee' && (int)$ticket['user_id'] !== (int)$_SESSION['user_id']) {
+    die("คุณไม่มีสิทธิ์เข้าถึงข้อมูล Ticket นี้");
+}
+
+// ดึงประวัติการอัปเดตงาน (Timeline)
+$updates_stmt = $pdo->prepare("
+    SELECT tu.*, u.fullname as updater_name, u.role as updater_role
     FROM ticket_updates tu
     JOIN users u ON tu.updated_by = u.id
     WHERE tu.ticket_id = ?
     ORDER BY tu.created_at ASC
 ");
-$history->execute([$ticket_id]);
-$updates = $history->fetchAll(PDO::FETCH_ASSOC);
+$updates_stmt->execute([$ticket_id]);
+$updates = $updates_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$status_class = ['open'=>'danger','in_progress'=>'warning','resolved'=>'success','closed'=>'secondary'];
-$status_text  = ['open'=>'รอดำเนินการ','in_progress'=>'กำลังแก้ไข','resolved'=>'แก้ไขแล้ว','closed'=>'ปิดแล้ว'];
-$cat_text     = ['hardware'=>'Hardware','software'=>'Software','network'=>'Network','other'=>'อื่นๆ'];
-$s = $ticket['status'] ?? 'open';
+// Map ข้อความภาษาไทย
+$status_badge = [
+    'open'        => ['bg' => '#fef3c7', 'color' => '#92400e', 'label' => 'รอดำเนินการ', 'icon' => 'bi-clock-history'],
+    'in_progress' => ['bg' => '#dbeafe', 'color' => '#1e40af', 'label' => 'กำลังดำเนินการ', 'icon' => 'bi-gear-wide-connected'],
+    'resolved'    => ['bg' => '#d1fae5', 'color' => '#065f46', 'label' => 'แก้ไขแล้ว', 'icon' => 'bi-check-circle'],
+    'closed'      => ['bg' => '#f1f5f9', 'color' => '#475569', 'label' => 'ปิดงานแล้ว', 'icon' => 'bi-x-circle']
+];
 
-// progress step ของสถานะ (สำหรับ progress bar ด้านบน)
-$step_order = ['open'=>1,'in_progress'=>2,'resolved'=>3,'closed'=>3];
-$current_step = $step_order[$s] ?? 1;
+$priority_badge = [
+    'low'    => ['bg' => '#f1f5f9', 'color' => '#475569', 'label' => '🟢 ปกติ'],
+    'medium' => ['bg' => '#e0f2fe', 'color' => '#0369a1', 'label' => '🟡 ปานกลาง'],
+    'high'   => ['bg' => '#fef3c7', 'color' => '#92400e', 'label' => '🟠 ด่วน'],
+    'urgent' => ['bg' => '#fee2e2', 'color' => '#991b1b', 'label' => '🔴 ด่วนมาก']
+];
+
+$category_label = [
+    'hardware' => 'ฮาร์ดแวร์ (Hardware)',
+    'software' => 'ซอฟต์แวร์ (Software)',
+    'network'  => 'เครือข่าย (Network)',
+    'other'    => 'อื่นๆ / ไม่ระบุ'
+];
+
+$st = $status_badge[$ticket['status']] ?? $status_badge['open'];
+$pr = $priority_badge[$ticket['priority']] ?? $priority_badge['medium'];
 ?>
 <?php require_once __DIR__ . '/../includes/header.php'; ?>
 
 <style>
-.td-wrap { font-size: 13.5px; color: #1f2937; }
-.td-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 22px; flex-wrap:wrap; gap:12px; }
-.td-eyebrow { font-size: 11px; letter-spacing: 0.6px; color: #9ca3af; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
-.td-title { font-size: 19px; font-weight: 600; color: #111827; margin: 0; display:flex; align-items:center; gap: 10px; }
-.td-ticketno { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; background:#eef2ff; color:#3730a3; padding: 3px 9px; border-radius: 5px; font-weight:600; letter-spacing:0.3px; }
-.btn-back { background:#fff; border:1px solid #e5e7eb; color:#374151; border-radius:8px; padding:8px 16px; font-size:13px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
-.btn-back:hover { background:#f9fafb; color:#111827; }
-
-/* Status banner */
-.status-banner { border-radius: 12px; padding: 18px 22px; margin-bottom: 22px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; border: 1px solid; }
-.status-banner.s-open       { background:#fef2f2; border-color:#fecaca; }
-.status-banner.s-progress   { background:#fffbeb; border-color:#fde68a; }
-.status-banner.s-done       { background:#f0fdf4; border-color:#bbf7d0; }
-.sb-label { font-size: 11px; text-transform:uppercase; letter-spacing:0.5px; font-weight:600; opacity:0.7; margin-bottom:2px; }
-.sb-value { font-size: 17px; font-weight: 700; }
-.s-open .sb-value, .s-open .sb-label   { color:#991b1b; }
-.s-progress .sb-value, .s-progress .sb-label { color:#92400e; }
-.s-done .sb-value, .s-done .sb-label   { color:#166534; }
-
-/* progress steps */
-.steps { display:flex; align-items:center; gap:0; }
-.step { display:flex; align-items:center; gap:8px; }
-.step-dot { width:11px; height:11px; border-radius:50%; background:#d1d5db; flex-shrink:0; }
-.step:nth-child(1).done .step-dot,
-.step:nth-child(1).active .step-dot { background:#ef4444; }
-.step:nth-child(3).done .step-dot,
-.step:nth-child(3).active .step-dot { background:#f59e0b; }
-.step:nth-child(5).done .step-dot,
-.step:nth-child(5).active .step-dot { background:#22c55e; }
-.step.active .step-dot { box-shadow:0 0 0 4px rgba(0,0,0,0.08); }
-.step-text { font-size:12px; color:#9ca3af; font-weight:500; white-space:nowrap; }
-.step.done .step-text, .step.active .step-text { color:#374151; font-weight:600; }
-.step-line { width:38px; height:1px; background:#e5e7eb; margin:0 8px; }
-.step-line.done { background:#22c55e; }
-
-/* card */
-.card-panel { background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; height:100%; }
-.card-panel-head { padding:14px 20px; border-bottom:1px solid #f1f2f4; display:flex; align-items:center; gap:8px; }
-.card-panel-head i { color:#1a56db; font-size:15px; }
-.card-panel-head span { font-size:13.5px; font-weight:600; color:#111827; }
-.card-panel-body { padding: 20px; }
-
-/* info rows */
-.info-row { display:flex; padding: 10px 0; border-bottom:1px solid #f3f4f6; }
-.info-row:last-child { border-bottom:none; }
-.info-icon { width: 30px; flex-shrink:0; color:#9ca3af; font-size:14px; padding-top:1px; }
-.info-key { width: 110px; flex-shrink:0; color:#9ca3af; font-size:12px; padding-top:2px; }
-.info-val { flex:1; color:#111827; font-weight:500; }
-.info-val small a { color:#6b7280; }
-
-.desc-box { background:#f9fafb; border:1px solid #f1f2f4; border-radius:9px; padding:14px 16px; margin-top: 4px; color:#374151; line-height:1.6; }
-.desc-label { font-size:12px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:8px; }
-
-/* device info grid */
-.device-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-top: 4px; }
-.device-item { background:#f9fafb; border:1px solid #f1f2f4; border-radius:9px; padding:10px 14px; }
-.device-item .dk { font-size:11px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px; }
-.device-item .dv { font-size:13.5px; color:#111827; font-weight:500; }
-
-/* timeline */
-.tl { position:relative; padding-left: 6px; }
-.tl-item { position:relative; padding-left: 34px; padding-bottom: 26px; }
-.tl-item:last-child { padding-bottom: 4px; }
-.tl-item::before { /* vertical line */
-    content:''; position:absolute; left:11px; top:26px; bottom:0; width:2px; background:#e5e7eb;
+.view-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
 }
-.tl-item:last-child::before { display:none; }
-.tl-dot { position:absolute; left:0; top:0; width:24px; height:24px; border-radius:50%; background:#1a56db; color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
-.tl-head { display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; }
-.tl-who { font-weight:600; font-size:13.5px; color:#111827; }
-.tl-time { font-size:11.5px; color:#9ca3af; white-space:nowrap; }
-.tl-transition { margin: 7px 0; font-size:11.5px; display:flex; align-items:center; gap:6px; }
-.tl-note { color:#4b5563; font-size:13px; line-height:1.55; margin-top:4px; }
-.badge-mini { font-size:11px; padding:3px 9px; border-radius:20px; font-weight:600; }
-.bm-danger{background:#fee2e2;color:#991b1b;} .bm-warning{background:#fef3c7;color:#92400e;}
-.bm-success{background:#dcfce7;color:#166534;} .bm-secondary{background:#f3f4f6;color:#374151;}
+.btn-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: #475569; background: #ffffff; border: 1px solid #cbd5e1;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    text-decoration: none; transition: all 0.15s ease;
+}
+.btn-back:hover { background: #f1f5f9; color: #0f172a; }
 
-.empty-state { text-align:center; padding: 38px 10px; color:#9ca3af; }
-.empty-state i { font-size: 30px; display:block; margin-bottom: 10px; color:#d1d5db; }
+.badge-custom {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 600;
+}
+
+.ticket-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04);
+    margin-bottom: 24px;
+}
+
+.info-label { font-size: 11.5px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 4px; }
+.info-value { font-size: 14px; color: #0f172a; font-weight: 500; }
+
+/* Timeline */
+.timeline-wrap {
+    position: relative;
+    padding-left: 28px;
+}
+.timeline-wrap::before {
+    content: '';
+    position: absolute;
+    top: 10px; bottom: 10px; left: 10px;
+    width: 2px;
+    background: #e2e8f0;
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 24px;
+}
+.timeline-item:last-child { margin-bottom: 0; }
+.timeline-dot {
+    position: absolute;
+    left: -28px; top: 4px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #2563eb;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #2563eb;
+}
+.timeline-content {
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 10px;
+    padding: 16px;
+}
+.timeline-user { font-size: 13px; font-weight: 600; color: #0f172a; }
+.timeline-time { font-size: 11.5px; color: #94a3b8; margin-left: auto; }
+.timeline-note { font-size: 13.5px; color: #334155; margin-top: 8px; line-height: 1.5; white-space: pre-line; }
+
+.img-preview-thumb {
+    max-width: 100%; max-height: 240px; border-radius: 10px;
+    border: 1px solid #e2e8f0; margin-top: 12px; cursor: pointer;
+    transition: transform 0.2s;
+}
+.img-preview-thumb:hover { transform: scale(1.01); }
 </style>
 
-<div class="td-wrap">
-
-    <div class="td-top">
+<!-- Header & Back Button -->
+<div class="view-header">
+    <div class="d-flex align-items-center gap-3">
+        <a href="<?= BASE_URL ?>/<?= $_SESSION['role'] ?>/dashboard.php" class="btn-back">
+            <i class="bi bi-arrow-left"></i> ย้อนกลับ
+        </a>
         <div>
-            <div class="td-eyebrow">รายละเอียดการแจ้งซ่อม</div>
-            <h4 class="td-title">
-                <span class="td-ticketno"><?= htmlspecialchars($ticket['ticket_no']) ?></span>
-                <?= htmlspecialchars($ticket['title']) ?>
+            <h4 class="fw-bold mb-0">
+                Ticket #<?= htmlspecialchars($ticket['ticket_no']) ?>
             </h4>
-        </div>
-        <a href="<?= BASE_URL ?>/employee/dashboard.php" class="btn-back">
-            <i class="bi bi-arrow-left"></i> กลับหน้ารายการ
-        </a>
-    </div>
-
-    <?php
-        $banner_cls = $s === 'open' ? 's-open' : (($s === 'resolved' || $s === 'closed') ? 's-done' : 's-progress');
-    ?>
-    <div class="status-banner <?= $banner_cls ?>">
-        <div>
-            <div class="sb-label">สถานะปัจจุบัน</div>
-            <div class="sb-value"><?= $status_text[$s] ?></div>
-        </div>
-
-        <div class="steps">
-            <div class="step <?= $current_step >= 1 ? ($current_step==1 ? 'active' : 'done') : '' ?>">
-                <span class="step-dot"></span><span class="step-text">รอดำเนินการ</span>
-            </div>
-            <div class="step-line <?= $current_step >= 2 ? 'done' : '' ?>"></div>
-            <div class="step <?= $current_step >= 2 ? ($current_step==2 ? 'active' : 'done') : '' ?>">
-                <span class="step-dot"></span><span class="step-text">กำลังแก้ไข</span>
-            </div>
-            <div class="step-line <?= $current_step >= 3 ? 'done' : '' ?>"></div>
-            <div class="step <?= $current_step >= 3 ? 'done' : '' ?>">
-                <span class="step-dot"></span><span class="step-text">เสร็จสิ้น</span>
-            </div>
+            <span class="text-muted small">แจ้งเมื่อ <?= date('d/m/Y H:i', strtotime($ticket['created_at'])) ?> น.</span>
         </div>
     </div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge-custom" style="background: <?= $pr['bg'] ?>; color: <?= $pr['color'] ?>;">
+            <?= $pr['label'] ?>
+        </span>
+        <span class="badge-custom" style="background: <?= $st['bg'] ?>; color: <?= $st['color'] ?>;">
+            <i class="bi <?= $st['icon'] ?>"></i> <?= $st['label'] ?>
+        </span>
+    </div>
+</div>
 
-    <div class="row g-4">
-        <!-- รายละเอียด -->
-        <div class="col-md-5">
-            <div class="card-panel">
-                <div class="card-panel-head">
-                    <i class="bi bi-clipboard-data"></i><span>ข้อมูล Ticket</span>
+<div class="row g-4">
+    <!-- ฝั่งซ้าย: รายละเอียดปัญหา & ประวัติ Timeline -->
+    <div class="col-lg-8">
+        
+        <!-- การ์ดรายละเอียดปัญหา -->
+        <div class="ticket-card">
+            <h5 class="fw-bold text-dark mb-3">
+                <i class="bi bi-card-heading text-primary me-2"></i><?= htmlspecialchars($ticket['title']) ?>
+            </h5>
+            
+            <div class="info-label">อาการ / รายละเอียดปัญหาที่แจ้ง</div>
+            <div class="p-3 bg-light rounded-3 text-dark mb-3" style="font-size:14px; line-height:1.6; white-space: pre-line;">
+                <?= htmlspecialchars($ticket['description']) ?>
+            </div>
+
+            <?php if (!empty($ticket['image_path'])): ?>
+                <div class="info-label mt-3">รูปภาพประกอบที่แนบมา</div>
+                <a href="<?= BASE_URL ?>/<?= htmlspecialchars($ticket['image_path']) ?>" target="_blank">
+                    <img src="<?= BASE_URL ?>/<?= htmlspecialchars($ticket['image_path']) ?>" alt="รูปภาพแจ้งซ่อม" class="img-preview-thumb">
+                </a>
+            <?php endif; ?>
+        </div>
+
+        <!-- การ์ด Timeline ประวัติการดำเนินงาน -->
+        <div class="ticket-card">
+            <h5 class="fw-bold text-dark mb-4 d-flex align-items-center justify-content-between">
+                <span><i class="bi bi-clock-history text-primary me-2"></i>ประวัติการดำเนินงาน (Timeline)</span>
+                <span class="badge bg-secondary font-monospace fw-normal fs-6"><?= count($updates) ?> รายการ</span>
+            </h5>
+
+            <?php if (empty($updates)): ?>
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-hourglass-split fs-2 opacity-50 d-block mb-2"></i>
+                    ยังไม่มีการอัปเดตประวัติการซ่อมจากช่าง IT
                 </div>
-                <div class="card-panel-body">
+            <?php else: ?>
+                <div class="timeline-wrap">
+                    <?php foreach ($updates as $up): ?>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"><i class="bi bi-check"></i></div>
+                            <div class="timeline-content">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="timeline-user me-2"><i class="bi bi-person-circle me-1"></i><?= htmlspecialchars($up['updater_name']) ?></span>
+                                    <span class="badge bg-light text-dark border me-2" style="font-size:10.5px;"><?= htmlspecialchars($up['updater_role']) ?></span>
+                                    <span class="timeline-time"><i class="bi bi-clock me-1"></i><?= date('d/m/Y H:i', strtotime($up['created_at'])) ?> น.</span>
+                                </div>
 
-                    <div class="info-row">
-                        <div class="info-icon"><i class="bi bi-tag"></i></div>
-                        <div class="info-key">ประเภท</div>
-                        <div class="info-val"><?= $cat_text[$ticket['category']] ?? 'อื่นๆ' ?></div>
-                    </div>
-
-                    <div class="info-row">
-                        <div class="info-icon"><i class="bi bi-person-gear"></i></div>
-                        <div class="info-key">ช่างที่รับ</div>
-                        <div class="info-val">
-                            <?php if ($ticket['technician']): ?>
-                                <?= htmlspecialchars($ticket['technician']) ?>
-                                <?php if ($ticket['technician_email']): ?>
-                                    <br><small><a href="mailto:<?= htmlspecialchars($ticket['technician_email']) ?>"><?= htmlspecialchars($ticket['technician_email']) ?></a></small>
+                                <?php if ($up['old_status'] !== $up['new_status'] && !empty($up['new_status'])): ?>
+                                    <div class="my-2">
+                                        <span class="small text-muted">เปลี่ยนสถานะ:</span>
+                                        <span class="badge bg-primary ms-1"><?= $status_badge[$up['new_status']]['label'] ?? $up['new_status'] ?></span>
+                                    </div>
                                 <?php endif; ?>
-                            <?php else: ?>
-                                <span style="color:#9ca3af; font-weight:400;">ยังไม่มอบหมาย</span>
-                            <?php endif; ?>
-                        </div>
-                    </div>
 
-                    <div class="info-row">
-                        <div class="info-icon"><i class="bi bi-calendar-event"></i></div>
-                        <div class="info-key">วันที่แจ้ง</div>
-                        <div class="info-val" style="font-weight:400; color:#4b5563;"><?= date('d/m/Y H:i', strtotime($ticket['created_at'])) ?></div>
-                    </div>
+                                <?php if (!empty($up['note'])): ?>
+                                    <div class="timeline-note"><?= htmlspecialchars($up['note']) ?></div>
+                                <?php endif; ?>
 
-                    <div class="info-row">
-                        <div class="info-icon"><i class="bi bi-arrow-repeat"></i></div>
-                        <div class="info-key">อัปเดตล่าสุด</div>
-                        <div class="info-val" style="font-weight:400; color:#4b5563;"><?= date('d/m/Y H:i', strtotime($ticket['updated_at'])) ?></div>
-                    </div>
-
-                    <div class="desc-label" style="margin-top:18px;">รายละเอียดปัญหา</div>
-                    <div class="desc-box"><?= nl2br(htmlspecialchars($ticket['description'])) ?></div>
-
-                    <?php if (!empty($ticket['device_type']) || !empty($ticket['device_name']) || !empty($ticket['serial_no']) || !empty($ticket['building'])): ?>
-                    <div class="desc-label" style="margin-top:18px;">ข้อมูลอุปกรณ์ / สถานที่</div>
-                    <div class="device-grid">
-                        <?php if (!empty($ticket['device_type'])): ?>
-                        <div class="device-item">
-                            <div class="dk">ประเภทอุปกรณ์</div>
-                            <div class="dv"><?= htmlspecialchars($ticket['device_type']) ?></div>
-                        </div>
-                        <?php endif; ?>
-                        <?php if (!empty($ticket['device_name'])): ?>
-                        <div class="device-item">
-                            <div class="dk">ชื่ออุปกรณ์</div>
-                            <div class="dv"><?= htmlspecialchars($ticket['device_name']) ?></div>
-                        </div>
-                        <?php endif; ?>
-                        <?php if (!empty($ticket['serial_no'])): ?>
-                        <div class="device-item">
-                            <div class="dk">Serial / Asset No.</div>
-                            <div class="dv"><?= htmlspecialchars($ticket['serial_no']) ?></div>
-                        </div>
-                        <?php endif; ?>
-                        <?php if (!empty($ticket['building'])): ?>
-                        <div class="device-item">
-                            <div class="dk">สถานที่</div>
-                            <div class="dv">
-                                <?= htmlspecialchars($ticket['building']) ?>
-                                <?php if (!empty($ticket['floor'])): ?> ชั้น <?= htmlspecialchars($ticket['floor']) ?><?php endif; ?>
-                                <?php if (!empty($ticket['room'])): ?> ห้อง <?= htmlspecialchars($ticket['room']) ?><?php endif; ?>
+                                <?php if (!empty($up['image'])): ?>
+                                    <div class="mt-2">
+                                        <a href="<?= BASE_URL ?>/uploads/updates/<?= htmlspecialchars($up['image']) ?>" target="_blank">
+                                            <img src="<?= BASE_URL ?>/uploads/updates/<?= htmlspecialchars($up['image']) ?>" alt="รูปภาพอัปเดต" class="img-preview-thumb" style="max-height:140px;">
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+    </div>
+
+    <!-- ฝั่งขวา: ข้อมูลสถานที่, อุปกรณ์ & ช่างผู้รับผิดชอบ -->
+    <div class="col-lg-4">
+
+        <!-- สถานที่ & ข้อมูลอุปกรณ์ -->
+        <div class="ticket-card mb-4">
+            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-geo-alt text-primary me-2"></i>สถานที่แจ้งซ่อม</h6>
+            
+            <div class="mb-3">
+                <div class="info-label">อาคาร / ตึก</div>
+                <div class="info-value"><i class="bi bi-building me-1 text-muted"></i><?= htmlspecialchars($ticket['building'] ?: '-') ?></div>
+            </div>
+            
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <div class="info-label">ชั้น</div>
+                    <div class="info-value"><?= htmlspecialchars($ticket['floor'] ?: '-') ?></div>
+                </div>
+                <div class="col-6">
+                    <div class="info-label">ห้อง</div>
+                    <div class="info-value"><?= htmlspecialchars($ticket['room'] ?: '-') ?></div>
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4"><i class="bi bi-pc-display text-primary me-2"></i>ข้อมูลอุปกรณ์</h6>
+
+            <div class="mb-3">
+                <div class="info-label">หมวดหมู่</div>
+                <div class="info-value"><?= htmlspecialchars($category_label[$ticket['category']] ?? $ticket['category']) ?></div>
+            </div>
+
+            <div class="mb-3">
+                <div class="info-label">ประเภทอุปกรณ์</div>
+                <div class="info-value"><?= htmlspecialchars($ticket['device_type'] ?: '-') ?></div>
+            </div>
+
+            <div class="mb-3">
+                <div class="info-label">ชื่อ / รุ่นอุปกรณ์</div>
+                <div class="info-value"><?= htmlspecialchars($ticket['device_name'] ?: '-') ?></div>
+            </div>
+
+            <div>
+                <div class="info-label">หมายเลขเครื่อง / Serial No.</div>
+                <div class="info-value font-monospace small"><?= htmlspecialchars($ticket['serial_no'] ?: '-') ?></div>
+            </div>
+        </div>
+
+        <!-- ช่างผู้รับผิดชอบ -->
+        <div class="ticket-card">
+            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-tools text-primary me-2"></i>ช่างผู้รับผิดชอบ</h6>
+
+            <?php if (!empty($ticket['tech_name'])): ?>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width:44px; height:44px; font-size:18px;">
+                        <?= mb_substr($ticket['tech_name'], 0, 1, 'UTF-8') ?>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark"><?= htmlspecialchars($ticket['tech_name']) ?></div>
+                        <div class="text-muted small"><?= htmlspecialchars($ticket['tech_dept'] ?: 'แผนก IT Support') ?></div>
+                        <?php if (!empty($ticket['tech_email'])): ?>
+                            <div class="text-primary small mt-1"><i class="bi bi-envelope me-1"></i><?= htmlspecialchars($ticket['tech_email']) ?></div>
                         <?php endif; ?>
                     </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($ticket['image_path'])): ?>
-                    <div class="desc-label" style="margin-top:18px;">รูปภาพประกอบ</div>
-                    <a href="<?= BASE_URL ?>/<?= htmlspecialchars($ticket['image_path']) ?>" target="_blank" style="display:inline-block; margin-top:6px;">
-                        <img src="<?= BASE_URL ?>/<?= htmlspecialchars($ticket['image_path']) ?>"
-                             style="width:160px; height:160px; object-fit:cover; border-radius:9px; border:1px solid #e5e7eb; display:block;">
-                    </a>
-                    <?php endif; ?>
-
                 </div>
-            </div>
+            <?php else: ?>
+                <div class="text-muted text-center py-3 small">
+                    <i class="bi bi-hourglass me-1"></i> อยู่ในระหว่างรอผู้จัดการมอบหมายช่าง
+                </div>
+            <?php endif; ?>
         </div>
 
-        <!-- ประวัติ -->
-        <div class="col-md-7">
-            <div class="card-panel">
-                <div class="card-panel-head">
-                    <i class="bi bi-clock-history"></i><span>ประวัติการดำเนินงาน</span>
-                </div>
-                <div class="card-panel-body">
-                    <?php if (empty($updates)): ?>
-                        <div class="empty-state">
-                            <i class="bi bi-hourglass-split"></i>
-                            ยังไม่มีการดำเนินงาน รอช่าง IT รับเรื่อง
-                        </div>
-                    <?php else: ?>
-                        <div class="tl">
-                            <?php foreach ($updates as $i => $u): ?>
-                            <div class="tl-item">
-                                <div class="tl-dot"><?= $i + 1 ?></div>
-                                <div class="tl-head">
-                                    <span class="tl-who"><?= htmlspecialchars($u['updater']) ?></span>
-                                    <span class="tl-time"><?= date('d/m/Y H:i', strtotime($u['created_at'])) ?></span>
-                                </div>
-                                <?php if ($u['old_status'] && $u['new_status']): ?>
-                                <div class="tl-transition">
-                                    <span class="badge-mini bm-<?= $status_class[$u['old_status']] ?>"><?= $status_text[$u['old_status']] ?></span>
-                                    <i class="bi bi-arrow-right" style="color:#9ca3af; font-size:11px;"></i>
-                                    <span class="badge-mini bm-<?= $status_class[$u['new_status']] ?>"><?= $status_text[$u['new_status']] ?></span>
-                                </div>
-                                <?php endif; ?>
-                                <div class="tl-note"><?= nl2br(htmlspecialchars($u['note'])) ?></div>
-<?php if (!empty($u['image'])): ?>
-    <div style="margin-top:10px;">
-        <a href="<?= BASE_URL ?>/uploads/updates/<?= htmlspecialchars($u['image']) ?>" target="_blank">
-            <img src="<?= BASE_URL ?>/uploads/updates/<?= htmlspecialchars($u['image']) ?>" 
-                 style="max-width:200px; border-radius:8px; border:1px solid #e5e7eb;">
-        </a>
     </div>
-<?php endif; ?>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

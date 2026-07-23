@@ -462,6 +462,7 @@ $resolved = count(array_filter($my_tickets, fn($t) => $t['status'] === 'resolved
                     </td>
                     <td>
                         <form method="POST" action="<?= BASE_URL ?>/technician/update_ticket.php">
+                            <?= csrfInput() ?>
                             <input type="hidden" name="ticket_id" value="<?= $t['id'] ?>">
                             <input type="hidden" name="action" value="accept">
                             <button type="submit" class="btn-accept">

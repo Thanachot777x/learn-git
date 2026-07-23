@@ -27,6 +27,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])
 
 // อัปเดทการมอบหมายงาน / เปลี่ยนสถานะ
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_ticket'])) {
+    verifyCsrfToken();
     $ticket_id   = (int)$_POST['ticket_id'];
     $assigned_to = !empty($_POST['assigned_to']) ? (int)$_POST['assigned_to'] : null;
     $new_status  = $_POST['status'] ?? 'open';
@@ -49,6 +50,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_ticket'])) {
                     VALUES (?, ?, ?, ?, ?)
                 ");
                 $stmt_log->execute([$ticket_id, $_SESSION['user_id'], $old_status, $new_status, $note ?: 'ผู้ดูแลระบบอัปเดตข้อมูล Ticket']);
+
+                // ส่งการแจ้งเตือน
+                $t_stmt = $pdo->prepare("SELECT ticket_no, user_id FROM tickets WHERE id = ?");
+                $t_stmt->execute([$ticket_id]);
+                $t_info = $t_stmt->fetch(PDO::FETCH_ASSOC);
+                if ($t_info) {
+                    if ($assigned_to && $assigned_to !== $old_ticket['assigned_to']) {
+                        addNotification($pdo, $assigned_to, "คุณได้รับการมอบหมายงานใหม่ ({$t_info['ticket_no']})", "ผู้ดูแลระบบมอบหมายงานให้คุณดูแล", BASE_URL . "/technician/update_ticket.php?id={$ticket_id}", $ticket_id);
+                    }
+                    addNotification($pdo, $t_info['user_id'], "อัปเดต Ticket ({$t_info['ticket_no']})", "ผู้ดูแลระบบได้อัปเดตข้อมูล Ticket ของคุณแล้ว", BASE_URL . "/employee/view_ticket.php?id={$ticket_id}", $ticket_id);
+                }
             }
 
             $_SESSION['flash_success'] = 'อัปเดตข้อมูล Ticket เรียบร้อยแล้ว';
@@ -259,6 +271,7 @@ $techs = $pdo->query("SELECT id, fullname FROM users WHERE role = 'technician' A
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
                                         <form method="POST">
+                                            <?= csrfInput() ?>
                                             <input type="hidden" name="update_ticket" value="1">
                                             <input type="hidden" name="ticket_id" value="<?= $t['id'] ?>">
 

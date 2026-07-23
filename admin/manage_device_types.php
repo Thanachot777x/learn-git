@@ -6,6 +6,10 @@ requireRole('admin');
 $success = '';
 $error   = '';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrfToken();
+}
+
 // เพิ่มประเภทอุปกรณ์
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_item'])) {
     $name = trim($_POST['name'] ?? '');
@@ -110,6 +114,7 @@ tr:hover td { background: #f9fafb; }
                 </td>
                 <td>
                     <form method="POST" style="display:inline;" onsubmit="return confirm('ยืนยันลบ \'<?= htmlspecialchars($d['name'], ENT_QUOTES) ?>\'?')">
+                        <?= csrfInput() ?>
                         <input type="hidden" name="id" value="<?= $d['id'] ?>">
                         <button type="submit" name="delete_item" class="btn-del" title="ลบ">
                             <i class="bi bi-trash-fill"></i>
@@ -136,6 +141,7 @@ tr:hover td { background: #f9fafb; }
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST">
+                <?= csrfInput() ?>
                 <div class="modal-body">
                     <label class="form-label" style="font-size:13px;">ประเภทอุปกรณ์</label>
                     <input type="text" name="name" class="form-control" required placeholder="เช่น Computer, Printer">
@@ -160,6 +166,7 @@ tr:hover td { background: #f9fafb; }
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST">
+                <?= csrfInput() ?>
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editId">
                     <label class="form-label" style="font-size:13px;">ประเภทอุปกรณ์</label>

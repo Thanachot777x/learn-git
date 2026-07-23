@@ -6,6 +6,11 @@ requireRole('admin');
 $success = '';
 $error   = '';
 
+// ตรวจสอบ CSRF token สำหรับการส่งข้อมูล POST ทั้งหมด
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrfToken();
+}
+
 // เพิ่มผู้ใช้
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user'])) {
     $username         = trim($_POST['username'] ?? '');
@@ -182,6 +187,7 @@ tr:hover td { background: #f9fafb; }
     </div>
     <div class="section-body">
         <form method="POST">
+            <?= csrfInput() ?>
             <div class="form-grid" style="margin-bottom:14px;">
                 <div>
                     <label class="form-label">Username <span style="color:#ef4444;">*</span></label>
@@ -195,11 +201,21 @@ tr:hover td { background: #f9fafb; }
             <div class="form-grid" style="margin-bottom:14px;">
                 <div>
                     <label class="form-label">Password <span style="color:#ef4444;">*</span></label>
-                    <input type="password" name="password" class="form-input" placeholder="กรอกรหัสผ่าน" required minlength="4">
+                    <div style="position:relative;">
+                        <input type="password" name="password" id="addPwd" class="form-input" placeholder="กรอกรหัสผ่าน" required minlength="4" style="padding-right:40px;">
+                        <button type="button" onclick="togglePwd('addPwd', this)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#64748b; padding:4px;">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <label class="form-label">ยืนยันรหัสผ่าน <span style="color:#ef4444;">*</span></label>
-                    <input type="password" name="confirm_password" class="form-input" placeholder="กรอกรหัสผ่านอีกครั้ง" required minlength="4">
+                    <div style="position:relative;">
+                        <input type="password" name="confirm_password" id="addConfirmPwd" class="form-input" placeholder="กรอกรหัสผ่านอีกครั้ง" required minlength="4" style="padding-right:40px;">
+                        <button type="button" onclick="togglePwd('addConfirmPwd', this)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#64748b; padding:4px;">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="form-grid" style="margin-bottom:14px;">
@@ -226,7 +242,7 @@ tr:hover td { background: #f9fafb; }
                     <label class="form-label">สิทธิ์การใช้งาน <span style="color:#ef4444;">*</span></label>
                     <select name="role" class="form-select" required>
                         <option value="">-- เลือกสิทธิ์ --</option>
-                        <option value="employee">Employe</option>
+                        <option value="employee">Employee</option>
                         <option value="technician">Technician</option>
                         <option value="manager">Manager</option>
                         <option value="admin">Admin</option>
@@ -331,6 +347,7 @@ tr:hover td { background: #f9fafb; }
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <form method="POST" style="display:inline;">
+                                <?= csrfInput() ?>
                                 <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                                 <input type="hidden" name="current_status" value="<?= $u['status'] ?>">
                                 <button type="submit" name="toggle_status" class="btn-icon"
@@ -370,6 +387,7 @@ tr:hover td { background: #f9fafb; }
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST">
+                <?= csrfInput() ?>
                 <div class="modal-body">
                     <input type="hidden" name="user_id" id="editUid">
                     <div class="form-grid" style="margin-bottom:14px;">
@@ -429,6 +447,7 @@ tr:hover td { background: #f9fafb; }
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST">
+                <?= csrfInput() ?>
                 <div class="modal-body">
                     <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">
                         ผู้ใช้: <strong id="resetUname"></strong>
@@ -462,6 +481,18 @@ document.getElementById('modalEditUser').addEventListener('show.bs.modal', e => 
     document.getElementById('editDepartment').value = btn.getAttribute('data-department');
     document.getElementById('editRole').value = btn.getAttribute('data-role');
 });
+
+function togglePwd(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye-slash';
+    }
+}
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

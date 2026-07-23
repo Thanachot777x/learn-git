@@ -12,6 +12,7 @@ $error   = '';
 
 // มอบหมายงาน
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign'])) {
+    verifyCsrfToken();
     $ticket_id = (int) $_POST['ticket_id'];
     $tech_id   = (int) $_POST['tech_id'];
 
@@ -31,6 +32,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign'])) {
 
             $pdo->prepare("INSERT INTO ticket_updates (ticket_id, updated_by, old_status, new_status, note) VALUES (?, ?, ?, 'in_progress', ?)")
                 ->execute([$ticket_id, $_SESSION['user_id'], $old, 'มอบหมายงานโดย Manager']);
+
+            // ดึงข้อมูล ticket เพื่อส่งแจ้งเตือน
+            $t_stmt = $pdo->prepare("SELECT ticket_no, user_id, title FROM tickets WHERE id = ?");
+            $t_stmt->execute([$ticket_id]);
+            $t_info = $t_stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($t_info) {
+                // แจ้งเตือนช่าง
+                addNotification($pdo, $tech_id, "คุณได้รับการมอบหมายงานใหม่ ({$t_info['ticket_no']})", "หัวข้อ: {$t_info['title']}", BASE_URL . "/technician/update_ticket.php?id={$ticket_id}", $ticket_id);
+                // แจ้งเตือนพนักงานผู้แจ้ง
+                addNotification($pdo, $t_info['user_id'], "อัปเดต Ticket ({$t_info['ticket_no']})", "ผู้จัดการได้มอบหมายช่างผู้รับผิดชอบดูแลงานซ่อมของคุณแล้ว", BASE_URL . "/employee/view_ticket.php?id={$ticket_id}", $ticket_id);
+            }
 
             $success = 'มอบหมายงานเรียบร้อยแล้ว';
         }
@@ -231,6 +244,7 @@ $cat_text       = ['hardware'=>'Hardware','software'=>'Software','network'=>'Net
             <div class="modal-body">
                 <p class="text-muted mb-3" id="modal_ticket_title" style="font-size:13px;"></p>
                 <form method="POST">
+                    <?= csrfInput() ?>
                     <input type="hidden" name="ticket_id" id="modal_ticket_id">
                     <label class="form-label fw-semibold">เลือกช่างผู้รับผิดชอบ</label>
                     <div class="input-group">
