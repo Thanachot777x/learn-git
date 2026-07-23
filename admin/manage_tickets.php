@@ -27,6 +27,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])
 
 // อัปเดทการมอบหมายงาน / เปลี่ยนสถานะ
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_ticket'])) {
+    verifyCsrfToken();
     $ticket_id   = (int)$_POST['ticket_id'];
     $assigned_to = !empty($_POST['assigned_to']) ? (int)$_POST['assigned_to'] : null;
     $new_status  = $_POST['status'] ?? 'open';
@@ -259,6 +260,7 @@ $techs = $pdo->query("SELECT id, fullname FROM users WHERE role = 'technician' A
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
                                         <form method="POST">
+                                            <?= csrfInput() ?>
                                             <input type="hidden" name="update_ticket" value="1">
                                             <input type="hidden" name="ticket_id" value="<?= $t['id'] ?>">
 

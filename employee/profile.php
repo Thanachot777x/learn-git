@@ -11,6 +11,10 @@ $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrfToken();
+}
+
 // แก้ข้อมูลส่วนตัว
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     $fullname   = trim($_POST['fullname'] ?? '');
@@ -103,6 +107,7 @@ $role_text = ['employee'=>'พนักงาน','technician'=>'ช่าง IT
                 </div>
 
                 <form method="POST">
+                    <?= csrfInput() ?>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">ชื่อ-นามสกุล <span class="text-danger">*</span></label>
                         <input type="text" name="fullname" class="form-control"
@@ -138,6 +143,7 @@ $role_text = ['employee'=>'พนักงาน','technician'=>'ช่าง IT
             </div>
             <div class="card-body">
                 <form method="POST">
+                    <?= csrfInput() ?>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">รหัสผ่านเดิม <span class="text-danger">*</span></label>
                         <input type="password" name="old_password" class="form-control"

@@ -12,6 +12,7 @@ $error   = '';
 
 // มอบหมายงาน
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign'])) {
+    verifyCsrfToken();
     $ticket_id = (int) $_POST['ticket_id'];
     $tech_id   = (int) $_POST['tech_id'];
 
@@ -231,6 +232,7 @@ $cat_text       = ['hardware'=>'Hardware','software'=>'Software','network'=>'Net
             <div class="modal-body">
                 <p class="text-muted mb-3" id="modal_ticket_title" style="font-size:13px;"></p>
                 <form method="POST">
+                    <?= csrfInput() ?>
                     <input type="hidden" name="ticket_id" id="modal_ticket_id">
                     <label class="form-label fw-semibold">เลือกช่างผู้รับผิดชอบ</label>
                     <div class="input-group">

@@ -18,7 +18,7 @@ function requireRole($role) {
     requireLogin();
     $allowed = is_array($role) ? $role : [$role];
     if (!in_array($_SESSION['role'], $allowed)) {
-        header("Location: " . BASE_URL . "/auth/login.php");
+        header("Location: " . BASE_URL . "/" . $_SESSION['role'] . "/dashboard.php");
         exit();
     }
 }

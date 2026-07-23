@@ -6,6 +6,11 @@ requireRole('admin');
 $success = '';
 $error   = '';
 
+// ตรวจสอบ CSRF token สำหรับการส่งข้อมูล POST ทั้งหมด
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrfToken();
+}
+
 // เพิ่มผู้ใช้
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user'])) {
     $username         = trim($_POST['username'] ?? '');
@@ -182,6 +187,7 @@ tr:hover td { background: #f9fafb; }
     </div>
     <div class="section-body">
         <form method="POST">
+            <?= csrfInput() ?>
             <div class="form-grid" style="margin-bottom:14px;">
                 <div>
                     <label class="form-label">Username <span style="color:#ef4444;">*</span></label>
@@ -226,7 +232,7 @@ tr:hover td { background: #f9fafb; }
                     <label class="form-label">สิทธิ์การใช้งาน <span style="color:#ef4444;">*</span></label>
                     <select name="role" class="form-select" required>
                         <option value="">-- เลือกสิทธิ์ --</option>
-                        <option value="employee">Employe</option>
+                        <option value="employee">Employee</option>
                         <option value="technician">Technician</option>
                         <option value="manager">Manager</option>
                         <option value="admin">Admin</option>
@@ -331,6 +337,7 @@ tr:hover td { background: #f9fafb; }
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <form method="POST" style="display:inline;">
+                                <?= csrfInput() ?>
                                 <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                                 <input type="hidden" name="current_status" value="<?= $u['status'] ?>">
                                 <button type="submit" name="toggle_status" class="btn-icon"
@@ -370,6 +377,7 @@ tr:hover td { background: #f9fafb; }
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST">
+                <?= csrfInput() ?>
                 <div class="modal-body">
                     <input type="hidden" name="user_id" id="editUid">
                     <div class="form-grid" style="margin-bottom:14px;">
@@ -429,6 +437,7 @@ tr:hover td { background: #f9fafb; }
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST">
+                <?= csrfInput() ?>
                 <div class="modal-body">
                     <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">
                         ผู้ใช้: <strong id="resetUname"></strong>

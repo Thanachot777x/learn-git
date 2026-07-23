@@ -1,5 +1,8 @@
 -- IT Support Helpdesk Database Schema
 
+CREATE DATABASE IF NOT EXISTS `it_support` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `it_support`;
+
 CREATE TABLE IF NOT EXISTS `buildings` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
@@ -106,7 +109,6 @@ CREATE TABLE IF NOT EXISTS `ticket_updates` (
   `new_status` enum('open','in_progress','resolved','closed') DEFAULT NULL,
   `note` text DEFAULT NULL,
   `image` varchar(255) DEFAULT NULL,
-  `image_path` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `ticket_id` (`ticket_id`),
@@ -115,7 +117,7 @@ CREATE TABLE IF NOT EXISTS `ticket_updates` (
   CONSTRAINT `ticket_updates_ibfk_2` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `ticket_updates` (`id`, `ticket_id`, `updated_by`, `old_status`, `new_status`, `note`, `image`, `image_path`, `created_at`) VALUES
-(1, 1, 6, 'open', 'in_progress', 'รับงานเข้าดำเนินการ', NULL, NULL, '2026-07-02 14:12:02'),
-(2, 1, 6, 'in_progress', 'in_progress', 'กำลังซ่อม', NULL, NULL, '2026-07-02 14:12:18'),
-(3, 1, 6, 'in_progress', 'resolved', 'เรียบร้อยละน้อง', 'update_6a4671ecc625b1.57256809.webp', NULL, '2026-07-02 14:13:00');
+INSERT INTO `ticket_updates` (`id`, `ticket_id`, `updated_by`, `old_status`, `new_status`, `note`, `image`, `created_at`) VALUES
+(1, 1, 6, 'open', 'in_progress', 'รับงานเข้าดำเนินการ', NULL, '2026-07-02 14:12:02'),
+(2, 1, 6, 'in_progress', 'in_progress', 'กำลังซ่อม', NULL, '2026-07-02 14:12:18'),
+(3, 1, 6, 'in_progress', 'resolved', 'เรียบร้อยละน้อง', 'update_6a4671ecc625b1.57256809.webp', '2026-07-02 14:13:00');

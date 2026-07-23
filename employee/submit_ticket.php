@@ -12,7 +12,9 @@ if (isset($_SESSION['flash_success'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrfToken();
     $description = trim($_POST['description'] ?? '');
+    $category    = $_POST['category'] ?? 'other';
     $device_type = trim($_POST['device_type'] ?? '');
     $device_name = trim($_POST['device_name'] ?? '');
     $serial_no   = trim($_POST['serial_no'] ?? '');
@@ -20,6 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $building    = trim($_POST['building'] ?? '');
     $floor       = trim($_POST['floor'] ?? '');
     $room        = trim($_POST['room'] ?? '');
+
+    $valid_categories = ['hardware', 'software', 'network', 'other'];
+    if (!in_array($category, $valid_categories)) {
+        $category = 'other';
+    }
 
     if (empty($device_type) || empty($device_name) || empty($serial_no) || empty($description) || empty($building) || empty($floor) || empty($room)) {
         $error = 'กรุณากรอกข้อมูลให้ครบทุกช่อง';
@@ -29,12 +36,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($_FILES['image']['name'])) {
             $file      = $_FILES['image'];
             $allowed   = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-            $max_size  = 5 * 1024 * 1024; // 999MB
+            $max_size  = 5 * 1024 * 1024; // 5MB
 
             if (!in_array($file['type'], $allowed)) {
                 $error = 'ไฟล์รูปภาพต้องเป็น JPG, PNG, GIF หรือ WEBP เท่านั้น';
             } elseif ($file['size'] > $max_size) {
-                $error = 'ขนาดไฟล์รูปภาพต้องไม่เกิน 999MB';
+                $error = 'ขนาดไฟล์รูปภาพต้องไม่เกิน 5MB';
             } elseif ($file['error'] !== UPLOAD_ERR_OK) {
                 $error = 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ';
             }
@@ -63,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 VALUES ('', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ")->execute([
                 $_SESSION['user_id'], $title, $description, $image_path,
-                'other', $device_type, $device_name, $serial_no,
+                $category, $device_type, $device_name, $serial_no,
                 $priority, $building, $floor, $room
             ]);
 
@@ -128,6 +135,7 @@ $buildings    = $pdo->query("SELECT name FROM buildings ORDER BY name")->fetchAl
 
 <div class="form-card">
 <form method="POST" enctype="multipart/form-data">
+    <?= csrfInput() ?>
 
     <!-- ผู้แจ้งซ่อม -->
     <div class="mb16" style="max-width: 340px;">
@@ -156,19 +164,28 @@ $buildings    = $pdo->query("SELECT name FROM buildings ORDER BY name")->fetchAl
         </div>
     </div>
 
-    <!-- อาการ / ระดับ / อาคาร -->
-    <div class="mb16" style="display: grid; grid-template-columns: 1fr 200px 200px; gap: 16px; align-items: start;">
+    <!-- อาการ / หมวดหมู่ / ระดับ / อาคาร -->
+    <div class="mb16" style="display: grid; grid-template-columns: 1fr 160px 160px 180px; gap: 16px; align-items: start;">
         <div>
             <label class="f-label">อาการ / รายละเอียดปัญหา <span class="req">*</span></label>
             <textarea name="description" class="f-textarea" placeholder="อธิบายอาการปัญหาโดยละเอียด" required><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
         </div>
         <div>
+            <label class="f-label">หมวดหมู่ปัญหา</label>
+            <select name="category" class="f-select">
+                <option value="other" <?= (($_POST['category'] ?? '') === 'other') ? 'selected' : '' ?>>อื่นๆ</option>
+                <option value="hardware" <?= (($_POST['category'] ?? '') === 'hardware') ? 'selected' : '' ?>>Hardware</option>
+                <option value="software" <?= (($_POST['category'] ?? '') === 'software') ? 'selected' : '' ?>>Software</option>
+                <option value="network" <?= (($_POST['category'] ?? '') === 'network') ? 'selected' : '' ?>>Network</option>
+            </select>
+        </div>
+        <div>
             <label class="f-label">ระดับความสำคัญ</label>
             <select name="priority" class="f-select">
-                <option value="low">ปกติ</option>
-                <option value="medium" selected>ปานกลาง</option>
-                <option value="high">สูง</option>
-                <option value="urgent">เร่งด่วน</option>
+                <option value="low" <?= (($_POST['priority'] ?? '') === 'low') ? 'selected' : '' ?>>ปกติ</option>
+                <option value="medium" <?= (($_POST['priority'] ?? 'medium') === 'medium') ? 'selected' : '' ?>>ปานกลาง</option>
+                <option value="high" <?= (($_POST['priority'] ?? '') === 'high') ? 'selected' : '' ?>>สูง</option>
+                <option value="urgent" <?= (($_POST['priority'] ?? '') === 'urgent') ? 'selected' : '' ?>>เร่งด่วน</option>
             </select>
         </div>
         <div>
