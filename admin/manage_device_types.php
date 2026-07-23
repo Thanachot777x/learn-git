@@ -21,7 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_item'])) {
         if ($check->fetchColumn() > 0) {
             $error = "ประเภทอุปกรณ์ '{$name}' มีอยู่แล้ว";
         } else {
-            $pdo->prepare("INSERT INTO device_types (name) VALUES (?)")->execute([$name]);
+            $maxOrder = (int) $pdo->query("SELECT COALESCE(MAX(sort_order), 0) FROM device_types")->fetchColumn();
+            $pdo->prepare("INSERT INTO device_types (name, sort_order) VALUES (?, ?)")->execute([$name, $maxOrder + 1]);
             $success = "เพิ่มประเภทอุปกรณ์ '{$name}' เรียบร้อยแล้ว";
         }
     }
@@ -52,8 +53,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_item'])) {
     $success = 'ลบข้อมูลเรียบร้อยแล้ว';
 }
 
+// ขยับลำดับ ขึ้น/ลง
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['move_item'])) {
+    $id  = (int) $_POST['id'];
+    $dir = $_POST['dir'] ?? '';
+
+    $stmt = $pdo->prepare("SELECT sort_order FROM device_types WHERE id = ?");
+    $stmt->execute([$id]);
+    $current = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($current) {
+        $currentOrder = $current['sort_order'];
+
+        if ($dir === 'up') {
+            $stmt = $pdo->prepare("SELECT id, sort_order FROM device_types WHERE sort_order < ? ORDER BY sort_order DESC LIMIT 1");
+        } else {
+            $stmt = $pdo->prepare("SELECT id, sort_order FROM device_types WHERE sort_order > ? ORDER BY sort_order ASC LIMIT 1");
+        }
+        $stmt->execute([$currentOrder]);
+        $target = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($target) {
+            $pdo->prepare("UPDATE device_types SET sort_order = ? WHERE id = ?")->execute([$target['sort_order'], $id]);
+            $pdo->prepare("UPDATE device_types SET sort_order = ? WHERE id = ?")->execute([$currentOrder, $target['id']]);
+        }
+    }
+}
+
 // ดึงรายชื่อ
-$items = $pdo->query("SELECT * FROM device_types ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
+$items = $pdo->query("SELECT * FROM device_types ORDER BY sort_order")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <?php require_once __DIR__ . '/../includes/header.php'; ?>
 
@@ -71,6 +99,10 @@ tr:hover td { background: #f9fafb; }
 .btn-edit:hover { background: #15803d; }
 .btn-del { background: #f59e0b; color: #fff; border: none; border-radius: 6px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
 .btn-del:hover { background: #d97706; }
+.move-group { display: inline-flex; flex-direction: column; gap: 4px; }
+.btn-move { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; border-radius: 6px; width: 34px; height: 26px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; }
+.btn-move:hover:not(:disabled) { background: #e5e7eb; color: #111827; }
+.btn-move:disabled { opacity: .35; cursor: default; }
 .alert-ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 8px; padding: 10px 16px; font-size: 13px; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
 .alert-err { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 8px; padding: 10px 16px; font-size: 13px; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
 </style>
@@ -92,8 +124,9 @@ tr:hover td { background: #f9fafb; }
     <table>
         <thead>
             <tr>
-                <th style="width:100px;">ลำดับ</th>
+                <th style="width:90px;">ลำดับ</th>
                 <th style="text-align:left;">ประเภทอุปกรณ์</th>
+                <th style="width:90px;">ย้าย</th>
                 <th style="width:100px;">แก้ไข</th>
                 <th style="width:100px;">ลบ</th>
             </tr>
@@ -103,6 +136,26 @@ tr:hover td { background: #f9fafb; }
             <tr>
                 <td><?= $i + 1 ?></td>
                 <td style="text-align:left;"><?= htmlspecialchars($d['name']) ?></td>
+                <td>
+                    <div class="move-group">
+                        <form method="POST">
+                            <?= csrfInput() ?>
+                            <input type="hidden" name="id" value="<?= $d['id'] ?>">
+                            <input type="hidden" name="dir" value="up">
+                            <button type="submit" name="move_item" class="btn-move" title="ขยับขึ้น" <?= $i === 0 ? 'disabled' : '' ?>>
+                                <i class="bi bi-caret-up-fill"></i>
+                            </button>
+                        </form>
+                        <form method="POST">
+                            <?= csrfInput() ?>
+                            <input type="hidden" name="id" value="<?= $d['id'] ?>">
+                            <input type="hidden" name="dir" value="down">
+                            <button type="submit" name="move_item" class="btn-move" title="ขยับลง" <?= $i === count($items) - 1 ? 'disabled' : '' ?>>
+                                <i class="bi bi-caret-down-fill"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
                 <td>
                     <button class="btn-edit"
                             data-bs-toggle="modal" data-bs-target="#modalEdit"
@@ -124,7 +177,7 @@ tr:hover td { background: #f9fafb; }
             </tr>
             <?php endforeach; ?>
             <?php if (empty($items)): ?>
-            <tr><td colspan="4" style="color:#9ca3af; padding:2rem;">ไม่มีข้อมูล</td></tr>
+            <tr><td colspan="5" style="color:#9ca3af; padding:2rem;">ไม่มีข้อมูล</td></tr>
             <?php endif; ?>
         </tbody>
     </table>

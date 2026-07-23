@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$device_types = $pdo->query("SELECT name FROM device_types ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
+$device_types = $pdo->query("SELECT name FROM device_types ORDER BY sort_order")->fetchAll(PDO::FETCH_COLUMN);
 $buildings    = $pdo->query("SELECT name FROM buildings ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
 ?>
 <?php require_once __DIR__ . '/../includes/header.php'; ?>
