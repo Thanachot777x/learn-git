@@ -16,11 +16,17 @@ if (!defined('BASE_URL')) {
 }
 
 // ตรวจสอบสภาพแวดล้อม (Localhost vs Production Cloud)
+$is_local = 
+   $server_name = $_SERVER['SERVER_NAME'] ?? '';
+
 $is_local = (
-    !isset($_SERVER['SERVER_NAME']) || 
-    $_SERVER['SERVER_NAME'] === 'localhost' || 
-    $_SERVER['SERVER_NAME'] === '127.0.0.1' ||
-    $_SERVER['SERVER_NAME'] === '::1'
+    $server_name === '' ||
+    $server_name === 'localhost' ||
+    $server_name === '127.0.0.1' ||
+    $server_name === '::1' ||
+    preg_match('/^192\.168\.\d{1,3}\.\d{1,3}$/', $server_name) ||
+    preg_match('/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $server_name) ||
+    preg_match('/^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/', $server_name)
 );
 
 if ($is_local) {
