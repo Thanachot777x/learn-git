@@ -26,7 +26,9 @@ $is_local = (
     $server_name === '::1' ||
     preg_match('/^192\.168\.\d{1,3}\.\d{1,3}$/', $server_name) ||
     preg_match('/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $server_name) ||
-    preg_match('/^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/', $server_name)
+    preg_match('/^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/', $server_name) ||
+    preg_match('/\.ngrok-free\.(app|dev)$/', $server_name) ||
+    preg_match('/\.ngrok\.io$/', $server_name) 
 );
 
 if ($is_local) {
