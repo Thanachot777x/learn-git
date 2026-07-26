@@ -112,7 +112,16 @@ $params = [];
 if ($filter_role) { $where[] = 'role = ?'; $params[] = $filter_role; }
 if ($search) { $where[] = '(username LIKE ? OR fullname LIKE ? OR email LIKE ?)'; $params = array_merge($params, ["%$search%","%$search%","%$search%"]); }
 
-$stmt = $pdo->prepare("SELECT * FROM users WHERE " . implode(' AND ', $where) . " ORDER BY role, fullname");
+$stmt = $pdo->prepare("SELECT * FROM users WHERE " . implode(' AND ', $where) . " 
+    ORDER BY 
+    CASE role
+        WHEN 'admin' THEN 1
+        WHEN 'manager' THEN 2
+        WHEN 'technician' THEN 3
+        WHEN 'employee' THEN 4
+        ELSE 5
+    END ASC,
+    fullname ASC");
 $stmt->execute($params);
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
