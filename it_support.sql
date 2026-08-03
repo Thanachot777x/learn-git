@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 23, 2026 at 02:04 PM
+-- Generation Time: Aug 03, 2026 at 04:54 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -116,7 +116,7 @@ CREATE TABLE `notifications` (
 
 INSERT INTO `notifications` (`id`, `user_id`, `ticket_id`, `title`, `message`, `link`, `is_read`, `created_at`) VALUES
 (1, 5, 2, 'มี Ticket ใหม่เข้ามา (TK-000002)', 'หัวข้อ: Other: Acer', '/it_support/manager/assign_tickets.php', 0, '2026-07-23 10:19:11'),
-(2, 2, 2, 'มี Ticket ใหม่เข้ามา (TK-000002)', 'หัวข้อ: Other: Acer', '/it_support/admin/manage_tickets.php', 0, '2026-07-23 10:19:11'),
+(2, 2, 2, 'มี Ticket ใหม่เข้ามา (TK-000002)', 'หัวข้อ: Other: Acer', '/it_support/admin/manage_tickets.php', 1, '2026-07-23 10:19:11'),
 (3, 3, 2, 'มี Ticket ใหม่เข้ามา (TK-000002)', 'หัวข้อ: Other: Acer', '/it_support/admin/manage_tickets.php', 0, '2026-07-23 10:19:11'),
 (4, 4, 2, 'ช่างรับงานแล้ว (TK-000002)', 'ช่าง IT ได้กดรับ Ticket ของคุณและกำลังเริ่มดำเนินการ', '/it_support/employee/view_ticket.php?id=2', 1, '2026-07-23 10:20:33'),
 (5, 5, 2, 'ช่างรับงานแล้ว (TK-000002)', 'ช่าง pond ได้กดรับ Ticket แล้ว', '/it_support/manager/assign_tickets.php', 0, '2026-07-23 10:20:33'),
@@ -218,8 +218,9 @@ INSERT INTO `users` (`id`, `username`, `password`, `fullname`, `email`, `phone`,
 (2, 'admin', '$2y$10$KQCG29mCHsAJcS8gRagz3uyqwfGeXtRpShl28hAyUdMi/uWLElxZ.', 'Thanachot', 'admin@company.com', '0924378057', '', 'admin', 'active', '2026-07-02 09:39:07'),
 (3, 'kritsada', '$2y$10$k17MNMTi.JjS3wutuXgKIOxhhPHdYKk/UAvTeQoeHxczHC.ilOyTa', 'kritsada', 'pp@gmail.com', '', '', 'admin', 'active', '2026-07-02 09:45:18'),
 (4, 'emp1', '$2y$10$.FURv2C.QxfD8EVfK.mJ8O8BSVWR99/cv8fw9WQUZYaugIoW69NGO', 'ติ้ก กินไม่หยุด', 'tik@gmail.com', '', 'Account', 'employee', 'active', '2026-07-02 14:05:40'),
-(5, 'Manager1', '$2y$10$zF8CqIKBPoYwgTBAxEE0ruUt09MlRUPoI/zO4HgE32Pvjald3Vit6', 'Bas', 'basthanachot07@gmail.com', '', '', 'manager', 'active', '2026-07-02 14:08:29'),
-(6, 'tech01', '$2y$10$dLxDFjPseaQiUOR/l3HJyeREaNmsoHHtRVKd8C8BIFWQiqLNkqF4m', 'pond', 'pplnwza@gmail.com', '', 'IT Helpdesk', 'technician', 'active', '2026-07-02 14:11:23');
+(5, 'Manager1', '$2y$10$zF8CqIKBPoYwgTBAxEE0ruUt09MlRUPoI/zO4HgE32Pvjald3Vit6', 'Bas', 'basthanachot07@gmail.com', '', 'Manager', 'manager', 'active', '2026-07-02 14:08:29'),
+(6, 'tech01', '$2y$10$dLxDFjPseaQiUOR/l3HJyeREaNmsoHHtRVKd8C8BIFWQiqLNkqF4m', 'pond', 'pplnwza@gmail.com', '', 'IT Helpdesk', 'technician', 'active', '2026-07-02 14:11:23'),
+(7, 'emp2', '$2y$10$oV1Ea60F4DvoImJPz0BrDeNOPbclNCe0uhO8270ev7vVvt0/EllTi', 'คริส มาก', '', '0824378058', 'Computer', 'employee', 'active', '2026-07-25 16:00:28');
 
 --
 -- Indexes for dumped tables
@@ -322,7 +323,7 @@ ALTER TABLE `ticket_updates`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Constraints for dumped tables
