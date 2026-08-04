@@ -16,8 +16,7 @@ if (!defined('BASE_URL')) {
 }
 
 // ตรวจสอบสภาพแวดล้อม (Localhost vs Production Cloud)
-$is_local = 
-   $server_name = $_SERVER['SERVER_NAME'] ?? '';
+$server_name = $_SERVER['SERVER_NAME'] ?? '';
 
 $is_local = (
     $server_name === '' ||
@@ -28,11 +27,11 @@ $is_local = (
     preg_match('/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $server_name) ||
     preg_match('/^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/', $server_name) ||
     preg_match('/\.ngrok-free\.(app|dev)$/', $server_name) ||
-    preg_match('/\.ngrok\.io$/', $server_name) 
+    preg_match('/\.ngrok\.io$/', $server_name)
 );
 
 if ($is_local) {
-      // ----------------------------------------------------
+    // ----------------------------------------------------
     // ตั้งค่าสำหรับเครื่อง Local (XAMPP / WAMP / Localhost / Docker)
     // ใช้ Environment Variable ก่อน ถ้าไม่มีค่อย fallback เป็นค่า XAMPP ปกติ
     // ----------------------------------------------------
@@ -84,7 +83,7 @@ try {
             $pdo_init = new PDO("mysql:host=$host;charset=utf8mb4", $username, $password);
             $pdo_init->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $pdo_init->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
-            
+
             $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 

@@ -1,44 +1,46 @@
-services:
-  web:
-    image: php:8.2-apache
-    container_name: it_support_web
-    ports:
-      - "8080:80"
-    environment:
-      DB_HOST: db
-      DB_NAME: it_support
-      DB_USER: root
-      DB_PASS: rootpass
-    volumes:
-      - ./:/var/www/html
-    depends_on:
-      - db
-    command: >
-      bash -c "docker-php-ext-install pdo pdo_mysql mysqli &&
-               apache2-foreground"
+version: '3.8'
 
+services:
+  # ---- ตัวที่ 1: PHP + Apache (โค้ดของเรา) ----
+  web:
+    build: .                     # build จาก Dockerfile ที่อยู่โฟลเดอร์เดียวกัน
+    ports:
+      - "8080:80"                # เปิดเว็บที่ localhost:8080 (เครื่องเรา:คอนเทนเนอร์)
+    volumes:
+      - ./:/var/www/html         # sync โค้ดในเครื่องเรากับใน container (แก้ไฟล์แล้วเห็นผลทันที ไม่ต้อง build ใหม่)
+    depends_on:
+      - db                       # ต้องรอ MySQL พร้อมก่อน
+    environment:
+      - DB_HOST=db               # ชื่อ service "db" ใช้แทน localhost ได้เลยใน container
+      - DB_NAME=it_support       # ต้องตรงกับ MYSQL_DATABASE ด้านล่าง
+      - DB_USER=it_user          # ต้องตรงกับ MYSQL_USER ด้านล่าง
+      - DB_PASS=it_pass          # ต้องตรงกับ MYSQL_PASSWORD ด้านล่าง
+
+  # ---- ตัวที่ 2: MySQL ----
   db:
     image: mysql:8.0
-    container_name: it_support_db
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: it_support
     ports:
-      - "3308:3306"
+       - "3308:3306"             # ใช้ 3307 กันชนกับ MySQL ที่อาจมีอยู่แล้วในเครื่อง (เช่น MySQL97 ที่เคยชนพอร์ต 3306)
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: it_support
+      MYSQL_USER: it_user
+      MYSQL_PASSWORD: it_pass
     volumes:
-      - db_data:/var/lib/mysql
-      - ./database:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/mysql                          # เก็บข้อมูล DB ไว้ ไม่หายตอน restart container
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql  # auto import ตอนสร้าง DB ครั้งแรก
 
+  # ---- ตัวที่ 3 (ทางเลือก): phpMyAdmin จะดู DB ผ่านเว็บง่ายๆ ----
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: it_support_pma
+    image: phpmyadmin:latest
     ports:
       - "8081:80"
     environment:
       PMA_HOST: db
       PMA_USER: root
-      PMA_PASSWORD: rootpass
+      PMA_PASSWORD: root
+    depends_on:
+      - db
 
 volumes:
-  db_data:
+  db_data:                       # เก็บข้อมูล DB แยกจาก container เพื่อไม่ให้หายตอนลบ container
