@@ -35,7 +35,7 @@ if ($is_local) {
     // ตั้งค่าสำหรับเครื่อง Local (XAMPP / WAMP / Localhost / Docker)
     // ใช้ Environment Variable ก่อน ถ้าไม่มีค่อย fallback เป็นค่า XAMPP ปกติ
     // ----------------------------------------------------
-    $host     = getenv('DB_HOST') ?: "localhost";
+    $host     = getenv('DB_HOST') ?: "127.0.0.1";
     $dbname   = getenv('DB_NAME') ?: "it_support";
     $username = getenv('DB_USER') ?: "root";
     $password = getenv('DB_PASS') ?: "";

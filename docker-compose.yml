@@ -1,36 +1,41 @@
 version: '3.8'
 
 services:
-  # ---- ตัวที่ 1: PHP + Apache (โค้ดของเรา) ----
+  # ---- PHP + Apache (โค้ดของเรา) ----
   web:
-    build: .                     # build จาก Dockerfile ที่อยู่โฟลเดอร์เดียวกัน
+    build: .
     ports:
-      - "8080:80"                # เปิดเว็บที่ localhost:8080 (เครื่องเรา:คอนเทนเนอร์)
+      - "8080:80"
     volumes:
-      - ./:/var/www/html         # sync โค้ดในเครื่องเรากับใน container (แก้ไฟล์แล้วเห็นผลทันที ไม่ต้อง build ใหม่)
-    depends_on:
-      - db                       # ต้องรอ MySQL พร้อมก่อน
+      - ./:/var/www/html
     environment:
-      - DB_HOST=db               # ชื่อ service "db" ใช้แทน localhost ได้เลยใน container
-      - DB_NAME=it_support       # ต้องตรงกับ MYSQL_DATABASE ด้านล่าง
-      - DB_USER=it_user          # ต้องตรงกับ MYSQL_USER ด้านล่าง
-      - DB_PASS=it_pass          # ต้องตรงกับ MYSQL_PASSWORD ด้านล่าง
+      - DB_HOST=db          # ชี้ไปที่ service "db" ด้านล่าง (MySQL container ของโปรเจคเอง)
+      - DB_NAME=it_support
+      - DB_USER=root
+      - DB_PASS=rootpass    # ตั้งรหัสเอง ต้องตรงกับ MYSQL_ROOT_PASSWORD ของ service db
+    depends_on:
+      db:
+        condition: service_healthy   # รอให้ MySQL พร้อมก่อนค่อย start web
 
-  # ---- ตัวที่ 2: MySQL ----
+  # ---- MySQL (ของโปรเจคเอง ไม่พึ่ง XAMPP) ----
   db:
     image: mysql:8.0
-    ports:
-       - "3308:3306"             # ใช้ 3307 กันชนกับ MySQL ที่อาจมีอยู่แล้วในเครื่อง (เช่น MySQL97 ที่เคยชนพอร์ต 3306)
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: rootpass
       MYSQL_DATABASE: it_support
-      MYSQL_USER: it_user
-      MYSQL_PASSWORD: it_pass
+    ports:
+      - "3310:3306"          # ใช้ 3310 กัน port ชนกับโปรแกรมอื่นบนเครื่อง
     volumes:
-      - db_data:/var/lib/mysql                          # เก็บข้อมูล DB ไว้ ไม่หายตอน restart container
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql  # auto import ตอนสร้าง DB ครั้งแรก
+      - db_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro   # import schema อัตโนมัติตอนสร้าง container ครั้งแรก
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
-  # ---- ตัวที่ 3 (ทางเลือก): phpMyAdmin จะดู DB ผ่านเว็บง่ายๆ ----
+  # ---- phpMyAdmin (ทางเลือก เผื่ออยากดู DB ผ่านเว็บ) ----
   phpmyadmin:
     image: phpmyadmin:latest
     ports:
@@ -38,9 +43,9 @@ services:
     environment:
       PMA_HOST: db
       PMA_USER: root
-      PMA_PASSWORD: root
+      PMA_PASSWORD: rootpass
     depends_on:
       - db
 
 volumes:
-  db_data:                       # เก็บข้อมูล DB แยกจาก container เพื่อไม่ให้หายตอนลบ container
+  db_data:   # เก็บข้อมูล MySQL ไว้ถาวร แม้ลบ container ทิ้งแล้วสร้างใหม่ ข้อมูลไม่หาย
