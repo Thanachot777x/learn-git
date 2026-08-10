@@ -1,7 +1,7 @@
 import qrcode
 
-# link เข้า
-data = "http://192.168.1.12/it_support/auth/login.php"
+# link เข้าสู่ระบบ (ผ่าน ngrok)
+data = "https://pyramid-bonus-subplot.ngrok-free.dev/auth/login.php"
 
 img = qrcode.make(data)
 img.save("myqrcode.png")
