@@ -190,6 +190,9 @@ $techs = $pdo->query("SELECT id, fullname FROM users WHERE role = 'technician' A
                 <?php if ($status_filter !== 'all' || $priority_filter !== 'all' || $search !== ''): ?>
                     <a href="manage_tickets.php" class="btn btn-outline-secondary btn-sm">ล้างค่า</a>
                 <?php endif; ?>
+                <a href="export_excel.php?status=<?= htmlspecialchars($status_filter) ?>&priority=<?= htmlspecialchars($priority_filter) ?>" class="btn-act" style="background:#16a34a;">
+                    <i class="bi bi-file-earmark-excel"></i> Export Excel
+                </a>
             </div>
         </form>
 
