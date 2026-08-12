@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # ---- PHP + Apache (โค้ดของเรา) ----
   web:
     build: .
     ports:
@@ -9,33 +8,33 @@ services:
     volumes:
       - ./:/var/www/html
     environment:
-      - DB_HOST=db          # ชี้ไปที่ service "db" ด้านล่าง (MySQL container ของโปรเจคเอง)
+      - DB_HOST=db
       - DB_NAME=it_support
       - DB_USER=root
-      - DB_PASS=rootpass    # ตั้งรหัสเอง ต้องตรงกับ MYSQL_ROOT_PASSWORD ของ service db
+      - DB_PASS=rootpass
     depends_on:
       db:
-        condition: service_healthy   # รอให้ MySQL พร้อมก่อนค่อย start web
+        condition: service_healthy
 
-  # ---- MySQL (ของโปรเจคเอง ไม่พึ่ง XAMPP) ----
   db:
     image: mysql:8.0
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
       MYSQL_DATABASE: it_support
+      TZ: Asia/Bangkok
+    command: --default-time-zone='+07:00'
     ports:
-      - "3310:3306"          # ใช้ 3310 กัน port ชนกับโปรแกรมอื่นบนเครื่อง
+      - "3310:3306"
     volumes:
       - db_data:/var/lib/mysql
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro   # import schema อัตโนมัติตอนสร้าง container ครั้งแรก
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpass"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  # ---- phpMyAdmin (ทางเลือก เผื่ออยากดู DB ผ่านเว็บ) ----
   phpmyadmin:
     image: phpmyadmin:latest
     ports:
@@ -48,4 +47,4 @@ services:
       - db
 
 volumes:
-  db_data:   # เก็บข้อมูล MySQL ไว้ถาวร แม้ลบ container ทิ้งแล้วสร้างใหม่ ข้อมูลไม่หาย
+  db_data:
