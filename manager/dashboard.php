@@ -73,6 +73,9 @@ $priority_text  = ['low'=>'ต่ำ','medium'=>'ปานกลาง','high'=>
     <a href="<?= BASE_URL ?>/manager/assign_tickets.php" class="btn btn-primary btn-sm" style="border-radius:8px;">
         <i class="bi bi-person-check me-1"></i>ไปหน้ามอบหมายงาน
     </a>
+    <a href="<?= BASE_URL ?>/admin/export_excel.php" class="btn btn-sm" style="border-radius:8px; background:#16a34a; color:#fff;">
+    <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+</a>
 </div>
 
 <!-- Stat Cards -->

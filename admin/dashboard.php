@@ -233,11 +233,15 @@ $recent_tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h4>แดชบอร์ดภาพรวมระบบ</h4>
         <p>สวัสดี, <?= htmlspecialchars($_SESSION['fullname']) ?> — รายงานสถิติและสถานะภาพรวมผู้ดูแลระบบ</p>
     </div>
-    <span class="role-badge">
-        <i class="bi bi-shield-check"></i> ผู้ดูแลระบบ (Admin)
-    </span>
+    <div class="d-flex align-items-center gap-2">
+        <a href="<?= BASE_URL ?>/admin/export_excel.php" class="btn btn-sm" style="border-radius:8px; background:#16a34a; color:#fff; font-size:12.5px; padding:6px 12px;">
+            <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+        </a>
+        <span class="role-badge">
+            <i class="bi bi-shield-check"></i> ผู้ดูแลระบบ (Admin)
+        </span>
+    </div>
 </div>
-
 <!-- สถิติแถวแรก -->
 <div class="row g-3 mb-3">
     <div class="col-md-3 col-6">
