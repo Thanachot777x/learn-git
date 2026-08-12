@@ -26,4 +26,3 @@ function requireRole($role) {
 function getUserRole() {
     return $_SESSION['role'] ?? null;
 }
-?>

@@ -76,8 +76,19 @@ $priorityLabel = [
     'urgent' => 'เร่งด่วน',
 ];
 
+// ชื่อเดือนภาษาไทย สำหรับหัวตารางรายเดือน
+$thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
 // ============ สร้าง Spreadsheet ============
 $spreadsheet = new Spreadsheet();
+
+// สไตล์กลาง
+$headerStyle = [
+    'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1F4E78']],
+    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+];
+$zebraFill = ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF1F8']];
 
 // ---- ชีท 1: รายการ Ticket ----
 $sheet1 = $spreadsheet->getActiveSheet();
@@ -85,13 +96,8 @@ $sheet1->setTitle('รายการ Ticket');
 
 $headers = ['เลข Ticket', 'ผู้แจ้ง', 'แผนก', 'หัวข้อ', 'ประเภท', 'ความสำคัญ', 'สถานะ', 'ช่างที่ดูแล', 'สถานที่', 'วันที่แจ้ง', 'อัปเดตล่าสุด'];
 $sheet1->fromArray($headers, null, 'A1');
-
-$headerStyle = [
-    'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1F4E78']],
-    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-];
 $sheet1->getStyle('A1:K1')->applyFromArray($headerStyle);
+$sheet1->getRowDimension(1)->setRowHeight(24);
 
 $rowNum = 2;
 foreach ($tickets as $t) {
@@ -109,47 +115,88 @@ foreach ($tickets as $t) {
         $t['created_at'],
         $t['updated_at'],
     ], null, "A{$rowNum}");
+    // สลับสีแถว (zebra)
+    if ($rowNum % 2 === 0) {
+        $sheet1->getStyle("A{$rowNum}:K{$rowNum}")->getFill()->applyFromArray($zebraFill);
+    }
     $rowNum++;
 }
 
+$lastRow = $rowNum - 1;
 foreach (range('A', 'K') as $col) {
     $sheet1->getColumnDimension($col)->setAutoSize(true);
 }
-$sheet1->getStyle("A1:K" . ($rowNum - 1))->getBorders()->getAllBorders()
+$sheet1->getStyle("A1:K{$lastRow}")->getBorders()->getAllBorders()
     ->setBorderStyle(Border::BORDER_THIN);
+// จัดกลางคอลัมน์: เลข Ticket, ประเภท, ความสำคัญ, สถานะ
+if ($lastRow >= 2) {
+    $sheet1->getStyle("A2:A{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet1->getStyle("E2:G{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+}
+// ล็อกหัวตารางไว้เวลาเลื่อนดู
+$sheet1->freezePane('A2');
 
-// ---- ชีท 2: สรุปสถิติ ----
+// ---- ชีท 2: สรุปสถิติ (เรียบง่าย แบบคนทำ) ----
 $sheet2 = $spreadsheet->createSheet();
 $sheet2->setTitle('สรุปสถิติ');
 
-$sheet2->setCellValue('A1', 'จำนวน Ticket ต่อเดือน');
+$sheet2->setCellValue('A1', 'สรุปสถิติ');
 $sheet2->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-$sheet2->fromArray(['เดือน', 'จำนวน Ticket'], null, 'A3');
-$sheet2->getStyle('A3:B3')->applyFromArray($headerStyle);
 
-$r = 4;
+// --- จำนวน Ticket ต่อเดือน ---
+$sheet2->setCellValue('A3', 'จำนวน Ticket ต่อเดือน');
+$sheet2->getStyle('A3')->getFont()->setBold(true);
+
+$sheet2->fromArray(['เดือน', 'จำนวน Ticket'], null, 'A4');
+$sheet2->getStyle('A4:B4')->applyFromArray($headerStyle);
+
+$r = 5;
+$monthTotal = 0;
 foreach ($byMonth as $row) {
-    $sheet2->fromArray([$row['month'], $row['total']], null, "A{$r}");
+    [$y, $m] = array_map('intval', explode('-', $row['month']));
+    $monthLabel = ($thaiMonths[$m - 1] ?? $m) . ' ' . ($y + 543);
+    $monthTotal += (int) $row['total'];
+    $sheet2->fromArray([$monthLabel, (int) $row['total']], null, "A{$r}");
     $r++;
 }
+if ($byMonth) {
+    $sheet2->fromArray(['รวม', $monthTotal], null, "A{$r}");
+    $sheet2->getStyle("A{$r}:B{$r}")->getFont()->setBold(true);
+    $r++;
+}
+$lastMonthRow = $r - 1;
 
-$startTech = $r + 2;
+// --- จำนวน Ticket ต่อช่าง ---
+$startTech = $r + 1;
 $sheet2->setCellValue("A{$startTech}", 'จำนวน Ticket ต่อช่าง');
-$sheet2->getStyle("A{$startTech}")->getFont()->setBold(true)->setSize(14);
+$sheet2->getStyle("A{$startTech}")->getFont()->setBold(true);
 
-$startTech += 2;
-$sheet2->fromArray(['ช่าง', 'รับงานทั้งหมด', 'เสร็จแล้ว'], null, "A{$startTech}");
-$sheet2->getStyle("A{$startTech}:C{$startTech}")->applyFromArray($headerStyle);
+$sheet2->fromArray(['ช่าง', 'รับงานทั้งหมด', 'เสร็จแล้ว'], null, "A" . ($startTech + 1));
+$sheet2->getStyle("A" . ($startTech + 1) . ":C" . ($startTech + 1))->applyFromArray($headerStyle);
 
-$r = $startTech + 1;
+$r = $startTech + 2;
+$techTotal = 0;
+$techDone  = 0;
 foreach ($byTech as $row) {
-    $sheet2->fromArray([$row['technician'], $row['total'], $row['done']], null, "A{$r}");
+    $techTotal += (int) $row['total'];
+    $techDone  += (int) $row['done'];
+    $sheet2->fromArray([$row['technician'], (int) $row['total'], (int) $row['done']], null, "A{$r}");
     $r++;
 }
-
-foreach (range('A', 'C') as $col) {
-    $sheet2->getColumnDimension($col)->setAutoSize(true);
+if ($byTech) {
+    $sheet2->fromArray(['รวม', $techTotal, $techDone], null, "A{$r}");
+    $sheet2->getStyle("A{$r}:C{$r}")->getFont()->setBold(true);
 }
+
+// ขอบเส้นรอบตารางเท่านั้น (ไม่ใส่สีฉูดฉาด)
+$sheet2->getStyle("A4:B{$lastMonthRow}")->getBorders()->getAllBorders()
+    ->setBorderStyle(Border::BORDER_THIN);
+$sheet2->getStyle("A" . ($startTech + 1) . ":C{$r}")->getBorders()->getAllBorders()
+    ->setBorderStyle(Border::BORDER_THIN);
+
+$sheet2->getColumnDimension('A')->setWidth(20);
+$sheet2->getColumnDimension('B')->setWidth(16);
+$sheet2->getColumnDimension('C')->setWidth(14);
 
 // ---- ส่งไฟล์ให้ดาวน์โหลด ----
 $filename = 'it_support_report_' . date('Y-m-d_His') . '.xlsx';

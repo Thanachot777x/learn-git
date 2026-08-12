@@ -223,6 +223,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: none;
         }
 
+        .forgot-link {
+            font-size: 13px;
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+            color: #1d4ed8;
+        }
+
     </style>
 </head>
 <body>
@@ -269,6 +281,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="btn btn-login w-100">
                 <i class="bi bi-box-arrow-in-right me-2"></i>เข้าสู่ระบบ
             </button>
+            <div class="text-center mt-3">
+                <a href="<?= BASE_URL ?>/auth/forgot_password.php" class="forgot-link">ลืมรหัสผ่าน?</a>
+            </div>
         </form>
     </div>
 </div>

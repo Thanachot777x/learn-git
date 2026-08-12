@@ -76,6 +76,21 @@ try {
           CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
     ");
+
+    // ตรวจสอบและสร้างตาราง password_resets หากยังไม่มี (ใช้สำหรับฟีเจอร์ลืมรหัสผ่าน)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `password_resets` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `user_id` int(11) NOT NULL,
+          `token` varchar(64) NOT NULL,
+          `expires_at` datetime NOT NULL,
+          `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `token` (`token`),
+          KEY `user_id` (`user_id`),
+          CONSTRAINT `password_resets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+    ");
 } catch (PDOException $e) {
     if ($is_local) {
         // หากเป็น Localhost แล้วยังไม่มีฐานข้อมูล ให้ระบบสร้าง DB และนำเข้า schema ให้อัตโนมัติทันที
@@ -103,4 +118,3 @@ try {
         die("เชื่อมต่อฐานข้อมูลไม่สำเร็จ: " . $e->getMessage());
     }
 }
-?>

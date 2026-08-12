@@ -121,7 +121,7 @@ $stmt = $pdo->prepare("SELECT * FROM users WHERE " . implode(' AND ', $where) . 
         WHEN 'employee' THEN 4
         ELSE 5
     END ASC,
-    fullname ASC");
+    id ASC");
 $stmt->execute($params);
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

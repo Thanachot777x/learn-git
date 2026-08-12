@@ -16,4 +16,4 @@ if (isset($_GET['id'])) {
 $redirect = !empty($_GET['redirect']) ? $_GET['redirect'] : (BASE_URL . '/' . ($_SESSION['role'] ?? 'employee') . '/dashboard.php');
 header("Location: " . $redirect);
 exit();
-?>
+

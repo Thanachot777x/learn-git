@@ -82,4 +82,4 @@ function markAllNotificationsAsRead($pdo, $user_id) {
         return false;
     }
 }
-?>
+
