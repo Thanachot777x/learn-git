@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 03, 2026 at 04:54 PM
+-- Generation Time: Aug 04, 2026 at 11:25 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -121,7 +121,10 @@ INSERT INTO `notifications` (`id`, `user_id`, `ticket_id`, `title`, `message`, `
 (4, 4, 2, 'ช่างรับงานแล้ว (TK-000002)', 'ช่าง IT ได้กดรับ Ticket ของคุณและกำลังเริ่มดำเนินการ', '/it_support/employee/view_ticket.php?id=2', 1, '2026-07-23 10:20:33'),
 (5, 5, 2, 'ช่างรับงานแล้ว (TK-000002)', 'ช่าง pond ได้กดรับ Ticket แล้ว', '/it_support/manager/assign_tickets.php', 0, '2026-07-23 10:20:33'),
 (6, 2, 2, 'ช่างรับงานแล้ว (TK-000002)', 'ช่าง pond ได้กดรับ Ticket แล้ว', '/it_support/admin/manage_tickets.php', 1, '2026-07-23 10:20:33'),
-(7, 3, 2, 'ช่างรับงานแล้ว (TK-000002)', 'ช่าง pond ได้กดรับ Ticket แล้ว', '/it_support/admin/manage_tickets.php', 0, '2026-07-23 10:20:33');
+(7, 3, 2, 'ช่างรับงานแล้ว (TK-000002)', 'ช่าง pond ได้กดรับ Ticket แล้ว', '/it_support/admin/manage_tickets.php', 0, '2026-07-23 10:20:33'),
+(8, 5, 3, 'มี Ticket ใหม่เข้ามา (TK-000003)', 'หัวข้อ: SSD: 2', '/it_support/manager/assign_tickets.php', 0, '2026-08-04 09:12:20'),
+(9, 2, 3, 'มี Ticket ใหม่เข้ามา (TK-000003)', 'หัวข้อ: SSD: 2', '/it_support/admin/manage_tickets.php', 0, '2026-08-04 09:12:20'),
+(10, 3, 3, 'มี Ticket ใหม่เข้ามา (TK-000003)', 'หัวข้อ: SSD: 2', '/it_support/admin/manage_tickets.php', 0, '2026-08-04 09:12:20');
 
 -- --------------------------------------------------------
 
@@ -156,7 +159,8 @@ CREATE TABLE `tickets` (
 
 INSERT INTO `tickets` (`id`, `ticket_no`, `user_id`, `assigned_to`, `title`, `description`, `image_path`, `category`, `device_type`, `device_name`, `serial_no`, `priority`, `building`, `floor`, `room`, `status`, `created_at`, `updated_at`) VALUES
 (1, 'TK-000001', 4, 6, 'Computer: Acer', 'โน้ตบุ้คพัง', 'uploads/tickets/ticket_1783001263_6a4670af338db.webp', 'other', 'Computer', 'Acer', 'Com 1', 'medium', 'อาคาร 4', '3', '8303', 'resolved', '2026-07-02 14:07:43', '2026-07-21 15:39:02'),
-(2, 'TK-000002', 4, 6, 'Other: Acer', 'คอมพัง', 'uploads/tickets/ticket_1784801951_6a61ea9fc76f5.jpg', 'hardware', 'Other', 'Acer', '001', 'medium', 'อาคาร 4', '3', '8301', 'in_progress', '2026-07-23 10:19:11', '2026-07-23 10:20:33');
+(2, 'TK-000002', 4, 6, 'Other: Acer', 'คอมพัง', 'uploads/tickets/ticket_1784801951_6a61ea9fc76f5.jpg', 'hardware', 'Other', 'Acer', '001', 'medium', 'อาคาร 4', '3', '8301', 'in_progress', '2026-07-23 10:19:11', '2026-07-23 10:20:33'),
+(3, 'TK-000003', 4, NULL, 'SSD: 2', 'Com2', NULL, 'hardware', 'SSD', '2', '001', 'high', 'อาคาร 5', '2', '1', 'open', '2026-08-04 09:12:20', '2026-08-04 09:12:20');
 
 -- --------------------------------------------------------
 
@@ -305,13 +309,13 @@ ALTER TABLE `device_types`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `ticket_updates`
