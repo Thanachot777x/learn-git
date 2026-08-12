@@ -211,7 +211,8 @@ $status_text = ['open'=>'รอดำเนินการ','in_progress'=>'ก�
                 <div class="col-6">ประเภทอุปกรณ์: <?= htmlspecialchars($ticket['device_type']) ?></div>
                 <div class="col-6">ชื่ออุปกรณ์: <?= htmlspecialchars($ticket['device_name']) ?></div>
                 <div class="col-6">Serial No.: <?= htmlspecialchars($ticket['serial_no']) ?></div>
-                <div class="col-6">สถานที่: อาคาร <?= htmlspecialchars($ticket['building']) ?> ชั้น <?= htmlspecialchars($ticket['floor']) ?> ห้อง <?= htmlspecialchars($ticket['room']) ?></div>
+                <?php $bld_label = (mb_strpos($ticket['building'] ?? '', 'อาคาร') === 0) ? $ticket['building'] : ('อาคาร ' . $ticket['building']); ?>
+                <div class="col-6">สถานที่: <?= htmlspecialchars($bld_label) ?> ชั้น <?= htmlspecialchars($ticket['floor']) ?> ห้อง <?= htmlspecialchars($ticket['room']) ?></div>
             </div>
             <?php endif; ?>
 

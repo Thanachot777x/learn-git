@@ -40,21 +40,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // จัดการอัปโหลดรูปภาพ
         $image_path = null;
+        $ext        = '';
         if (!empty($_FILES['image']['name'])) {
             $file      = $_FILES['image'];
-            $allowed   = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            $allowed_ext  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            $allowed_mime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             $max_size  = 5 * 1024 * 1024; // 5MB
 
-            if (!in_array($file['type'], $allowed)) {
-                $error = 'ไฟล์รูปภาพต้องเป็น JPG, PNG, GIF หรือ WEBP เท่านั้น';
+            if ($file['error'] !== UPLOAD_ERR_OK) {
+                $error = 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ';
             } elseif ($file['size'] > $max_size) {
                 $error = 'ขนาดไฟล์รูปภาพต้องไม่เกิน 5MB';
-            } elseif ($file['error'] !== UPLOAD_ERR_OK) {
-                $error = 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ';
+            } elseif ($file['size'] <= 0) {
+                $error = 'ไฟล์ว่างเปล่า';
+            } else {
+                // ตรวจจากเนื้อหาไฟล์จริง (mime_content_type) + whitelist extension
+                // ไม่อ่าน MIME จาก $_FILES['type'] เพราะ client ปลอมได้
+                $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                $mime = mime_content_type($file['tmp_name']);
+                if (!in_array($ext, $allowed_ext) || !in_array($mime, $allowed_mime)) {
+                    $error = 'ไฟล์รูปภาพต้องเป็น JPG, PNG, GIF หรือ WEBP เท่านั้น';
+                }
             }
 
             if (empty($error)) {
-                $ext        = pathinfo($file['name'], PATHINFO_EXTENSION);
                 $filename   = 'ticket_' . time() . '_' . uniqid() . '.' . $ext;
                 $upload_dir = __DIR__ . '/../uploads/tickets/';
                 if (!file_exists($upload_dir)) {

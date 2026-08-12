@@ -24,6 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password'])) {
+            // ป้องกัน session fixation: สร้าง session id ใหม่ทุกครั้งที่ล็อกอินสำเร็จ
+            session_regenerate_id(true);
+
             $_SESSION['user_id']  = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['fullname'] = $user['fullname'];
@@ -137,6 +140,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 300;
         }
 
+        .login-clock {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.18);
+            font-size: 12px;
+            opacity: 0.92;
+        }
+        .login-clock .lc-time {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .login-clock .lc-date {
+            margin-top: 3px;
+            font-size: 11.5px;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
         .card-body {
             padding: 32px 30px 36px;
         }
@@ -200,6 +222,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 12px 16px;
             border: none;
         }
+
     </style>
 </head>
 <body>
@@ -211,6 +234,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <h4>IT Support Helpdesk</h4>
         <p>ระบบแจ้งซ่อมและจัดการงานไอที</p>
+        <div class="login-clock">
+            <div class="lc-time"><i class="bi bi-clock"></i> <span id="loginTime">--:--:--</span> น.</div>
+            <div class="lc-date" id="loginDate"></div>
+        </div>
     </div>
     <div class="card-body">
 
@@ -248,6 +275,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// แสดงเวลา/วันทีไทยแบบ real-time บนหน้า login
+function updateLoginClock() {
+    const now = new Date();
+    const timeEl = document.getElementById('loginTime');
+    const dateEl = document.getElementById('loginDate');
+    if (!timeEl || !dateEl) return;
+    timeEl.textContent = new Intl.DateTimeFormat('th-TH', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+    }).format(now);
+    dateEl.textContent = new Intl.DateTimeFormat('th-TH', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    }).format(now);
+}
+updateLoginClock();
+setInterval(updateLoginClock, 1000);
+
 function togglePwd(inputId, btn) {
     const input = document.getElementById(inputId);
     const icon = btn.querySelector('i');
