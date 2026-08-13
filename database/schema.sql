@@ -128,35 +128,6 @@ INSERT INTO `notifications` VALUES (1,5,2,'มี Ticket ใหม่เข้�
 UNLOCK TABLES;
 
 --
--- Table structure for table `password_resets`
---
-
-DROP TABLE IF EXISTS `password_resets`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `password_resets` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `token` varchar(64) COLLATE utf8mb4_general_ci NOT NULL,
-  `expires_at` datetime NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `token` (`token`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `password_resets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `password_resets`
---
-
-LOCK TABLES `password_resets` WRITE;
-/*!40000 ALTER TABLE `password_resets` DISABLE KEYS */;
-/*!40000 ALTER TABLE `password_resets` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `ticket_updates`
 --
 
@@ -265,7 +236,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (2,'admin','$2y$10$KQCG29mCHsAJcS8gRagz3uyqwfGeXtRpShl28hAyUdMi/uWLElxZ.','Thanachot','admin@company.com','0924378057','','admin','active','2026-07-02 09:39:07'),(3,'kritsada','$2y$10$k17MNMTi.JjS3wutuXgKIOxhhPHdYKk/UAvTeQoeHxczHC.ilOyTa','kritsada','pp@gmail.com','','','admin','active','2026-07-02 09:45:18'),(4,'emp1','$2y$10$GncUxA6uyHT8eHBIMXtnReUgTXdFq4LrWLZDcXY9PVM72OKy0Rck6','ติ้ก กินไม่หยุด','tik@gmail.com','','Account','employee','active','2026-07-02 14:05:40'),(5,'Manager1','$2y$10$zF8CqIKBPoYwgTBAxEE0ruUt09MlRUPoI/zO4HgE32Pvjald3Vit6','Bas','basthanachot07@gmail.com','','Manager','manager','active','2026-07-02 14:08:29'),(6,'tech01','$2y$10$dLxDFjPseaQiUOR/l3HJyeREaNmsoHHtRVKd8C8BIFWQiqLNkqF4m','pond','pplnwza@gmail.com','','IT','technician','active','2026-07-02 14:11:23'),(7,'emp2','$2y$10$oV1Ea60F4DvoImJPz0BrDeNOPbclNCe0uhO8270ev7vVvt0/EllTi','คริส มาก','','0824378058','Computer','employee','active','2026-07-25 16:00:28'),(8,'tech02','$2y$10$XWbCpGvGKGC2tBFkrerPU.oJZ5XiYPnA5peGh7stsHZD2qRAYiuEi','ธนโชติ จันทร์กระจ่าง','dekthanachot07@gmail.com','','IT','technician','active','2026-08-12 08:41:04'),(9,'emp3','$2y$10$yeAiz/2SGI6j/qRgGi9PY.IOZhIE22TcHa1HE6cTUqeSW/Q5Bevk6','สมชาย ชายสี่','malestyle@gmail.com','','Manager','employee','active','2026-08-12 09:08:29');
+INSERT INTO `users` VALUES (2,'admin','$2y$10$KQCG29mCHsAJcS8gRagz3uyqwfGeXtRpShl28hAyUdMi/uWLElxZ.','Thanachot','admin@company.com','0924378057','','admin','active','2026-07-02 09:39:07'),(3,'kritsada','$2y$10$k17MNMTi.JjS3wutuXgKIOxhhPHdYKk/UAvTeQoeHxczHC.ilOyTa','kritsada','pp@gmail.com','','','admin','active','2026-07-02 09:45:18'),(4,'emp1','$2y$10$x662uE.3VvyA2MZDTnOL5e7ThVVE1Y/wLRsNWdEzCTjCWtUb6L2Lm','ติ้ก กินไม่หยุด','tik@gmail.com','','Account','employee','active','2026-07-02 14:05:40'),(5,'Manager1','$2y$10$zF8CqIKBPoYwgTBAxEE0ruUt09MlRUPoI/zO4HgE32Pvjald3Vit6','Bas','basthanachot07@gmail.com','','Manager','manager','active','2026-07-02 14:08:29'),(6,'tech01','$2y$10$dLxDFjPseaQiUOR/l3HJyeREaNmsoHHtRVKd8C8BIFWQiqLNkqF4m','pond','pplnwza@gmail.com','','IT','technician','active','2026-07-02 14:11:23'),(7,'emp2','$2y$10$oV1Ea60F4DvoImJPz0BrDeNOPbclNCe0uhO8270ev7vVvt0/EllTi','คริส มาก','','0824378058','Computer','employee','active','2026-07-25 16:00:28'),(8,'tech02','$2y$10$XWbCpGvGKGC2tBFkrerPU.oJZ5XiYPnA5peGh7stsHZD2qRAYiuEi','ธนโชติ จันทร์กระจ่าง','dekthanachot07@gmail.com','','IT','technician','active','2026-08-12 08:41:04'),(9,'emp3','$2y$10$yeAiz/2SGI6j/qRgGi9PY.IOZhIE22TcHa1HE6cTUqeSW/Q5Bevk6','สมชาย ชายสี่','malestyle@gmail.com','','Manager','employee','active','2026-08-12 09:08:29');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -282,4 +253,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-12 20:33:42
+-- Dump completed on 2026-08-12 20:55:41

@@ -62,105 +62,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             justify-content: center;
             padding: 20px;
             margin: 0;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Floating background glow elements */
-        body::before {
-            content: '';
-            position: absolute;
-            width: 350px;
-            height: 350px;
-            background: radial-gradient(circle, rgba(59,130,246,0.25) 0%, rgba(0,0,0,0) 70%);
-            top: -50px;
-            left: -50px;
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        body::after {
-            content: '';
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, rgba(0,0,0,0) 70%);
-            bottom: -80px;
-            right: -80px;
-            border-radius: 50%;
-            pointer-events: none;
         }
 
         .login-card {
             width: 100%;
-            max-width: 430px;
+            max-width: 420px;
             background: #ffffff;
-            border-radius: 20px;
+            border-radius: 16px;
             box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
             overflow: hidden;
-            position: relative;
-            z-index: 10;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .login-header {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            background: #2563eb;
             color: white;
-            padding: 36px 30px;
+            padding: 30px 24px;
             text-align: center;
-            position: relative;
         }
 
         .login-header .logo-badge {
-            width: 64px;
-            height: 64px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(8px);
-            border-radius: 18px;
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
+            font-size: 26px;
             color: #ffffff;
-            margin-bottom: 14px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 12px;
         }
 
         .login-header h4 {
             font-weight: 700;
             margin: 0;
-            font-size: 20px;
-            letter-spacing: 0.5px;
+            font-size: 18px;
         }
 
         .login-header p {
             font-size: 13px;
             opacity: 0.85;
             margin: 4px 0 0;
-            font-weight: 300;
         }
 
         .login-clock {
-            margin-top: 14px;
+            margin-top: 12px;
             padding-top: 12px;
-            border-top: 1px solid rgba(255,255,255,0.18);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
             font-size: 12px;
-            opacity: 0.92;
         }
         .login-clock .lc-time {
             font-size: 15px;
             font-weight: 600;
-            letter-spacing: 0.3px;
         }
         .login-clock .lc-date {
-            margin-top: 3px;
-            font-size: 11.5px;
+            margin-top: 2px;
+            font-size: 11px;
             opacity: 0.8;
-            font-weight: 300;
         }
 
         .card-body {
-            padding: 32px 30px 36px;
+            padding: 26px 28px 30px;
         }
 
         .form-label {
@@ -171,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .input-group {
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
             border: 1px solid #cbd5e1;
             transition: all 0.2s ease;
@@ -179,62 +141,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .input-group:focus-within {
             border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
         .input-group-text {
             background-color: #f8fafc;
             border: none;
             color: #64748b;
-            padding-left: 14px;
-            padding-right: 14px;
+            padding-left: 12px;
+            padding-right: 12px;
         }
 
         .form-control {
             border: none !important;
             box-shadow: none !important;
-            padding: 11px 14px;
+            padding: 10px 12px;
             font-size: 14px;
             color: #0f172a;
         }
 
         .btn-login {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            background: #2563eb;
             border: none;
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: 8px;
+            padding: 11px;
             font-size: 14.5px;
             font-weight: 600;
             color: #ffffff;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
             transition: all 0.2s ease;
         }
 
         .btn-login:hover {
-            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
-            transform: translateY(-1px);
+            background: #1d4ed8;
         }
 
         .alert {
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 13px;
-            padding: 12px 16px;
+            padding: 11px 14px;
             border: none;
         }
-
-        .forgot-link {
-            font-size: 13px;
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .forgot-link:hover {
-            text-decoration: underline;
-            color: #1d4ed8;
-        }
-
     </style>
 </head>
 <body>
@@ -259,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
 
-        <form method="POST">
+        <form method="POST" onsubmit="this.querySelector('button[type=submit]').disabled = true;">
             <?= csrfInput() ?>
             <div class="mb-3">
                 <label class="form-label">ชื่อผู้ใช้ (Username)</label>
@@ -281,16 +227,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="btn btn-login w-100">
                 <i class="bi bi-box-arrow-in-right me-2"></i>เข้าสู่ระบบ
             </button>
-            <div class="text-center mt-3">
-                <a href="<?= BASE_URL ?>/auth/forgot_password.php" class="forgot-link">ลืมรหัสผ่าน?</a>
-            </div>
         </form>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// แสดงเวลา/วันทีไทยแบบ real-time บนหน้า login
+// แสดงเวลา/วันที่แบบไทย real-time บนหน้า login
 function updateLoginClock() {
     const now = new Date();
     const timeEl = document.getElementById('loginTime');

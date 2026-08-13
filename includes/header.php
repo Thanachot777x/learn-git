@@ -236,8 +236,8 @@ $current_dir  = basename(dirname($_SERVER['PHP_SELF']));
                class="sidebar-item <?= $current_page==='dashboard.php' && $current_dir==='technician' ? 'active':'' ?>">
                 <i class="bi bi-house"></i> หน้าหลัก
             </a>
-            <a href="<?= BASE_URL ?>/technician/dashboard.php?filter=assigned"
-               class="sidebar-item <?= isset($_GET['filter']) && $_GET['filter']==='assigned' ? 'active':'' ?>">
+            <a href="<?= BASE_URL ?>/technician/my_tickets.php"
+               class="sidebar-item <?= $current_page==='my_tickets.php' ? 'active':'' ?>">
                 <i class="bi bi-tools"></i> Ticket ของฉัน
             </a>
             <a href="<?= BASE_URL ?>/employee/profile.php"

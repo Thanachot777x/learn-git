@@ -15,25 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrfToken();
 }
 
-// แก้ข้อมูลส่วนตัว
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
-    $fullname   = trim($_POST['fullname'] ?? '');
-    $email      = trim($_POST['email'] ?? '');
-    $department = trim($_POST['department'] ?? '');
-
-    if (empty($fullname)) {
-        $error = 'กรุณากรอกชื่อ-นามสกุล';
-    } else {
-        $pdo->prepare("UPDATE users SET fullname = ?, email = ?, department = ? WHERE id = ?")
-            ->execute([$fullname, $email, $department, $_SESSION['user_id']]);
-        $_SESSION['fullname'] = $fullname;
-        $user['fullname']   = $fullname;
-        $user['email']      = $email;
-        $user['department'] = $department;
-        $success = 'อัปเดตข้อมูลเรียบร้อยแล้ว';
-    }
-}
-
 // เปลี่ยนรหัสผ่าน
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     $old_password = $_POST['old_password'] ?? '';
@@ -55,9 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
         $success = 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว';
     }
 }
-
-// ดึงรายชื่อแผนกจาก DB สำหรับ dropdown (กันชื่อแผนกพิมพ์เพี้ยนไม่ตรงกับตาราง departments)
-$departments = $pdo->query("SELECT name FROM departments ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
 
 $role_text = [
     'employee'   => 'พนักงาน',
@@ -111,31 +89,26 @@ $role_text = [
                     </div>
                 </div>
 
-                <form method="POST">
-                    <?= csrfInput() ?>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">ชื่อ-นามสกุล <span class="text-danger">*</span></label>
-                        <input type="text" name="fullname" class="form-control"
-                               value="<?= htmlspecialchars($user['fullname']) ?>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">อีเมล</label>
-                        <input type="email" name="email" class="form-control"
-                               value="<?= htmlspecialchars($user['email'] ?? '') ?>">
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">แผนก</label>
-                        <select name="department" class="form-control">
-                            <option value="">เลือกแผนก</option>
-                            <?php foreach ($departments as $d): ?>
-                            <option value="<?= htmlspecialchars($d) ?>" <?= (($user['department'] ?? '') === $d) ? 'selected' : '' ?>><?= htmlspecialchars($d) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <button type="submit" name="update_profile" class="btn btn-primary w-100">
-                        <i class="bi bi-save me-1"></i>บันทึกข้อมูล
-                    </button>
-                </form>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">ชื่อ-นามสกุล</label>
+                    <input type="text" class="form-control"
+                           value="<?= htmlspecialchars($user['fullname']) ?>" disabled>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">อีเมล</label>
+                    <input type="text" class="form-control"
+                           value="<?= htmlspecialchars($user['email'] ?? '-') ?>" disabled>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">แผนก</label>
+                    <input type="text" class="form-control"
+                           value="<?= htmlspecialchars($user['department'] ?? '-') ?>" disabled>
+                </div>
+                <div class="alert alert-light border mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    ชื่อ อีเมล และแผนก แก้ไขไม่ได้โปรดTicketเพื่อแจ้งกับแอดมินเพื่อแก้ไข
+        
+                </div>
             </div>
         </div>
     </div>
