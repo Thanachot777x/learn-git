@@ -16,7 +16,7 @@ $current_dir  = basename(dirname($_SERVER['PHP_SELF']));
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="<?= BASE_URL ?>/assets/css/style.css" rel="stylesheet">
+    <link href="<?= BASE_URL ?>/assets/css/style.css?v=2" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         body {
@@ -277,6 +277,10 @@ $current_dir  = basename(dirname($_SERVER['PHP_SELF']));
                class="sidebar-item <?= $current_page==='profile.php' ? 'active':'' ?>">
                 <i class="bi bi-person"></i> ข้อมูลส่วนตัว
             </a>
+            <a href="<?= BASE_URL ?>/admin/backup.php"
+               class="sidebar-item <?= $current_page==='backup.php' ? 'active':'' ?>">
+                <i class="bi bi-database-down"></i> สำรองข้อมูล
+            </a>
 
         <?php elseif ($_SESSION['role'] === 'manager'): ?>
             <div class="sidebar-section">ภาพรวม</div>
@@ -369,6 +373,14 @@ $current_dir  = basename(dirname($_SERVER['PHP_SELF']));
 <!-- Main -->
 <div class="main-wrap">
     <div class="main-content">
+
+    <?php if (!empty($_SESSION['flash_error'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><?= htmlspecialchars($_SESSION['flash_error']) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['flash_error']); ?>
+    <?php endif; ?>
 
 <script>
 function toggleSidebar() {

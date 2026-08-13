@@ -87,6 +87,21 @@ $cat_text       = ['hardware'=>'Hardware','software'=>'Software','network'=>'Net
 ?>
 <?php require_once __DIR__ . '/../includes/header.php'; ?>
 
+<style>
+/* คอลัมน์มอบหมาย: กว้างพอให้ปุ่ม ดู + มอบหมาย อยู่บรรทัดเดียวกัน จัดแนวกลาง ไม่ทับ/ไม่ wrap */
+.table th:last-child {
+    min-width: 200px;
+    white-space: nowrap;
+}
+.table td:last-child {
+    min-width: 200px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+</style>
+
 <div class="row mb-3">
     <div class="col-12">
         <h4 class="fw-bold"><i class="bi bi-person-check me-2"></i>มอบหมายงาน Ticket</h4>
@@ -204,8 +219,11 @@ $cat_text       = ['hardware'=>'Hardware','software'=>'Software','network'=>'Net
                         <td><span class="badge bg-<?= $s_class ?>"><?= $s_text ?></span></td>
                         <td><small><?= date('d/m/Y H:i', strtotime($t['created_at'])) ?></small></td>
                         <td>
+                            <a href="view_ticket.php?id=<?= $t['id'] ?>" class="btn-act">
+                                <i class="bi bi-eye"></i> ดู
+                            </a>
                             <?php if (!empty($techs)): ?>
-                            <button class="btn btn-sm btn-outline-primary" type="button"
+                            <button class="btn-act" type="button"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modalAssign"
                                     data-id="<?= $t['id'] ?>"

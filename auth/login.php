@@ -205,6 +205,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
 
+        <?php if (!empty($_SESSION['flash_error'])): ?>
+            <div class="alert alert-warning mb-4">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i><?= htmlspecialchars($_SESSION['flash_error']) ?>
+            </div>
+            <?php unset($_SESSION['flash_error']); ?>
+        <?php endif; ?>
+
         <form method="POST" onsubmit="this.querySelector('button[type=submit]').disabled = true;">
             <?= csrfInput() ?>
             <div class="mb-3">

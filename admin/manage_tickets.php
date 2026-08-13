@@ -11,9 +11,10 @@ if (isset($_SESSION['flash_success'])) {
     unset($_SESSION['flash_success']);
 }
 
-// ลบ Ticket
-if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
-    $delete_id = (int)$_GET['id'];
+// ลบ Ticket (POST เท่านั้น — กันลบพลาดผ่านลิงก์/GET)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete' && isset($_POST['id'])) {
+    verifyCsrfToken();
+    $delete_id = (int)$_POST['id'];
     try {
         $pdo->prepare("DELETE FROM ticket_updates WHERE ticket_id = ?")->execute([$delete_id]);
         $pdo->prepare("DELETE FROM tickets WHERE id = ?")->execute([$delete_id]);
@@ -138,10 +139,6 @@ $techs = $pdo->query("SELECT id, fullname FROM users WHERE role = 'technician' A
 .table-custom th { background: #f9fafb; padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-weight: 600; color: #374151; }
 .table-custom td { padding: 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; color: #1f2937; }
 .table-custom tr:hover { background: #f9fafb; }
-.btn-act { border: none; background: #3b82f6; color: #fff; padding: 5px 10px; border-radius: 5px; font-size: 12px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
-.btn-act:hover { background: #2563eb; color: #fff; }
-.btn-del { border: none; background: #ef4444; color: #fff; padding: 5px 10px; border-radius: 5px; font-size: 12px; cursor: pointer; text-decoration: none; margin-left: 4px; }
-.btn-del:hover { background: #dc2626; color: #fff; }
 </style>
 
 <div class="main-content">
@@ -190,7 +187,7 @@ $techs = $pdo->query("SELECT id, fullname FROM users WHERE role = 'technician' A
                 <?php if ($status_filter !== 'all' || $priority_filter !== 'all' || $search !== ''): ?>
                     <a href="manage_tickets.php" class="btn btn-outline-secondary btn-sm">ล้างค่า</a>
                 <?php endif; ?>
-                <a href="export_excel.php?status=<?= htmlspecialchars($status_filter) ?>&priority=<?= htmlspecialchars($priority_filter) ?>" class="btn-act" style="background:#16a34a;">
+                <a href="export_excel.php?status=<?= htmlspecialchars($status_filter) ?>&priority=<?= htmlspecialchars($priority_filter) ?>" class="btn-act" style="background:#16a34a; border-color:#16a34a;">
                     <i class="bi bi-file-earmark-excel"></i> Export Excel
                 </a>
             </div>
@@ -259,13 +256,19 @@ $techs = $pdo->query("SELECT id, fullname FROM users WHERE role = 'technician' A
                                     <span class="badge-status <?= $s_class ?>"><?= $s_text ?></span>
                                 </td>
                                 <td><small style="color: #6b7280;"><?= date('d/m/Y H:i', strtotime($t['created_at'])) ?></small></td>
-                                <td style="text-align: right;">
+                                <td style="text-align: right; white-space: nowrap;">
+                                    <a href="view_ticket.php?id=<?= $t['id'] ?>" class="btn-act">
+                                        <i class="bi bi-eye"></i> ดู
+                                    </a>
                                     <button type="button" class="btn-act" data-bs-toggle="modal" data-bs-target="#editModal<?= $t['id'] ?>">
                                         <i class="bi bi-pencil-square"></i> จัดการ
                                     </button>
-                                    <a href="manage_tickets.php?action=delete&id=<?= $t['id'] ?>" class="btn-del" onclick="return confirm('ยืนยันการลบ Ticket หมายเลข <?= $t['ticket_no'] ?> ?');">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
+                                    <form method="POST" style="display:inline;" onsubmit="return confirm('ยืนยันการลบ Ticket หมายเลข <?= htmlspecialchars($t['ticket_no']) ?> ?');">
+                                        <?= csrfInput() ?>
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="id" value="<?= $t['id'] ?>">
+                                        <button type="submit" class="btn-del" title="ลบ Ticket"><i class="bi bi-trash"></i></button>
+                                    </form>
                                 </td>
                             </tr>
 
